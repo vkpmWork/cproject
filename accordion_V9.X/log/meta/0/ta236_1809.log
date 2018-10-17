@@ -1,0 +1,510 @@
+#	Mon Sep 24 12:11:46 2018:  Started at  Mon Sep 24 12:11:46 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 8994
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : ic2.101.ru
+#	Port                 : 8000
+#	Loglevel             : error
+#	
+#	Mon Sep 24 12:16:10 2018:  Started at  Mon Sep 24 12:16:10 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 9197
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : ic2.101.ru
+#	Port                 : 8000
+#	Loglevel             : error
+#	
+#	Mon Sep 24 12:20:01 2018:  Started at  Mon Sep 24 12:20:01 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 9309
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	ic2.101.ru
+#	Port                 : 8000
+#	Loglevel             : error
+#	
+#	Mon Sep 24 12:20:47 2018:  Started at  Mon Sep 24 12:20:47 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 9359
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : error
+#	
+#	Mon Sep 24 12:23:28 2018:  Started at  Mon Sep 24 12:23:28 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 9439
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 12:24:16 2018:  Started at  Mon Sep 24 12:24:16 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 9479
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 12:37:28 2018:  Started at  Mon Sep 24 12:37:28 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 2881
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 12:45:20 2018:  Started at  Mon Sep 24 12:45:20 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 8204
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 12:47:26 2018:  Started at  Mon Sep 24 12:47:26 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 1428
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 12:48:55 2018:  Started at  Mon Sep 24 12:48:55 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 7290
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 13:30:34 2018:  Started at  Mon Sep 24 13:30:34 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 19784
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 13:32:29 2018:  Started at  Mon Sep 24 13:32:29 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 22032
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 13:35:03 2018:  Started at  Mon Sep 24 13:35:03 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 32033
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 13:47:12 2018:  Started at  Mon Sep 24 13:47:12 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 29817
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 14:14:44 2018:  Started at  Mon Sep 24 14:14:44 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 8.4
+#	 от 30.08.2018
+#	Pid                  : 26849
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 14:53:30 2018:  Started at  Mon Sep 24 14:53:30 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 24.09.2018
+#	Pid                  : 3093
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Mon Sep 24 18:41:58 2018:  Started at  Mon Sep 24 18:41:58 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 24.09.2018
+#	Pid                  : 8826
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Tue Sep 25 16:59:09 2018:  Started at  Tue Sep 25 16:59:09 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 10985
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 12:17:07 2018:  Started at  Wed Sep 26 12:17:07 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 21179
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 12:20:56 2018:  Started at  Wed Sep 26 12:20:56 2018
+#	Application name: ./accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 21399
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : ./conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 12:22:30 2018:  Started at  Wed Sep 26 12:22:30 2018
+#	Application name: ./accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 27060
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : ./conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 14:42:20 2018:  Started at  Wed Sep 26 14:42:20 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 16743
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 15:41:01 2018:  #	Wed Sep 26 15:42:52 2018:  Started at  Wed Sep 26 15:42:52 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 20640
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 15:43:36 2018:  Started at  Wed Sep 26 15:43:36 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 22161
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 15:44:39 2018:  Started at  Wed Sep 26 15:44:39 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 23478
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 15:45:50 2018:  Started at  Wed Sep 26 15:45:50 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 25383
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 15:46:13 2018:  Started at  Wed Sep 26 15:46:13 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 27978
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	2 1537965973 /ssd/mdb/0/979.aac : No such file or directory
+#	Wed Sep 26 15:48:56 2018:  #	Wed Sep 26 15:49:16 2018:  Started at  Wed Sep 26 15:49:16 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 31884
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:05:37 2018:  Started at  Wed Sep 26 16:05:37 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 32440
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:13:19 2018:  #	Wed Sep 26 16:13:23 2018:  Started at  Wed Sep 26 16:13:23 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 27199
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:13:58 2018:  Started at  Wed Sep 26 16:13:58 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 6339
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:29:12 2018:  Started at  Wed Sep 26 16:29:12 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 25207
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:30:07 2018:  Started at  Wed Sep 26 16:30:07 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 4656
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:31:12 2018:  Started at  Wed Sep 26 16:31:12 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 23108
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:32:59 2018:  Started at  Wed Sep 26 16:32:59 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 1223
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:36:36 2018:  Started at  Wed Sep 26 16:36:36 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 5037
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:41:16 2018:  Started at  Wed Sep 26 16:41:16 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 8244
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:42:09 2018:  Started at  Wed Sep 26 16:42:09 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 14457
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:42:35 2018:  Started at  Wed Sep 26 16:42:35 2018
+#	Application name: /home/irina/Eclipseworkspace/accordion_V9.X/Debug/accordion_V9.X  Version 9.0
+#	 от 25.09.2018
+#	Pid                  : 15366
+#	Log      file name   : ./log/0/a236.log
+#	Config   file name   : /home/irina/Eclipseworkspace/accordion_V9.X/conf/Template.ini
+#	Playlist file name   : /ssd
+#	Mount point          : a236
+#	Stream name          : Eltom John
+#	Address              : 127.0.0.1
+#	Port                 : 8000
+#	Loglevel             : debug
+#	
+#	Wed Sep 26 16:43:46 2018:  
