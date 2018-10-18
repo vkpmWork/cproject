@@ -55,7 +55,7 @@ int dispatcher(char** argv, int argc)
     	logger::ptr_log   = new logger::TInfoLog(pConfig->get_logfile(), pConfig->get_channel_prefix(), pConfig->get_channel_id(), pConfig->get_logsize(), pConfig->get_loglevel(), pConfig->get_impotant_info_marker());
     	logger::titr_log  = new logger::TTitrLog(pConfig->get_loghistory(), pConfig->get_channel_prefix(), pConfig->get_channel_id(), pConfig->get_loglevel());
 
-  	logger::message << "Configuration file :  " << argv[1] << std::endl;
+  	logger::message << endl << endl << "Configuration file :  " << argv[1] << std::endl;
     	logger::write_log(logger::message);
     }
     else

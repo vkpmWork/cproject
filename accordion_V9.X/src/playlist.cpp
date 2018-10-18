@@ -50,34 +50,6 @@ TPlaylist::TPlaylist(tconfig *ptr_config) :
         ptr_play_time = (tplay_time*) malloc(sizeof(tplay_time));
         memset(ptr_play_time, 0, sizeof(tplay_time));
 
-/*        ptr_client_socket = new tclient_socket(pConfig->get_host(), pConfig->get_port(), pConfig->get_connattempts(), SOCKET_BLOCK, pConfig->get_reconectgion_time());
-
-        if (!ptr_client_socket)
-        {
-            logger::message.str(get_error(config.error = ERR_SOCKET_CREATE));
-            logger::write_log(logger::message);
-                return;
-        }
-
-        if (ptr_client_socket->net_connect())
-        {
-                //usleep(10*1000); // 10 ms
-                ptr_event->ptr_flag->bit.ev_header =  1;
-                ptr_file_info->icecast_sample_rate = -1;
-        }
-        else
-        {
-                playlist_clear();
-                logger::message.str("On start : ptr_client_socket->is_connected() == false\n ");
-                logger::write_log(logger::message);
-                return;
-        }
-
-        common::time_stop = common::mtime();
-        logger::message.str("");
-        logger::message << "Before Param Time stop - start, mc = " << common::time_stop - common::time_start << endl;
-        logger::write_log(logger::message);
-*/
 
         config.contenttype = NULL;
 	config.playlist    = strdup(ptr_config->get_playlist());
@@ -244,7 +216,7 @@ void TPlaylist::start()
 	if (!pParameters->get_playfile_exists())
 		it_playlist = play_list.begin(); /* начинаем проигрывание сначала */
 	else
-		advance_iterator(); 			/* продолжаем с точки завершения приложения */
+		advance_iterator(); 		 /* продолжаем с точки завершения приложения */
 
 
 	save_idx(distance_iterator());

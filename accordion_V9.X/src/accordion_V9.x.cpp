@@ -144,15 +144,6 @@ int main(int argc, char **argv)
                                   m.clear();
                                   m = getCmdOutput(cmd_out);
                                   m_pid = common::GetPid(m);
-
-        		          if (m_pid)
-                                  {
-                                    //kill(m_pid, SIGKILL);
-                                    //std::cout << "Killing " << m_pid << std::endl;
-                                    //m_pid = 0;
-                                  }
-
-        			m_pid = kill(m_pid, 0);
         		}
         	}
     		free(cmd_out);
