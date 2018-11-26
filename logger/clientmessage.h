@@ -3,10 +3,20 @@
 
 #include "common.h"
 #include "tlogmsg.h"
+#include <vector>
+#include <map>
+
+typedef vector<string> Vmessage; /* список сообщений от клиентов */
+typedef map<string, Vmessage> Mmessagelist; /* domain/filename + сообщение */
+
+#define MSG_TYPE	1
+#define DEL_TYPE	2
+#define CFG_TYPE	3
 
 class TClientMessage
 {
-    TClientMessage(Logger_namespace::tcStore store, ulong, uint);
+public:
+	TClientMessage(pthread_t m_msg_thread, Logger_namespace::tcStore store, ulong, uint);
     void        AddMessage(TLogMsg *m);
     inline      msgevent::tcEvent Cmd()
                 { return m_cmd; }
@@ -17,7 +27,8 @@ class TClientMessage
 
     ~TClientMessage();
 private:
-    v_messagelist   message_list;
+    Mmessagelist    message_list;
+    pthread_t 	    msg_thread;
 
     unsigned short  MaxStoreListSize;
     Logger_namespace::tcStore         CategoryStore;
@@ -28,7 +39,8 @@ private:
 
     inline    void  set_transmit_timer(bool);
     inline    void  OnReadyTransmitMessage();
+    inline    void  OnDeleteMessage(std::string);
 };
 extern TClientMessage *pClientMessage;
-
+extern pthread_t logger_thread;
 #endif // CLIENTMESSAGE_H

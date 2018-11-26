@@ -10,9 +10,10 @@
 #include "common.h"
 #include "config.h"
 #include <linux/limits.h>
-#include "log.h"
-#include "loggermutex.h"
 #include "tclientsocket.h"
+#include "clientmessage.h"
+#include <signal.h>
+#include <typeinfo>
 
 #define LOCAL
 
@@ -24,7 +25,8 @@ const char *gLockFilePath           = "/var/run/";
 
 const char *version                 = "Application name: %s.  Version 1.0 от 08.11.2018\n";
 char       *pidfile_name            = NULL;
-
+Logger_namespace::tcStore     		CurrentStoreType;
+pthread_t 	msg_thread;
 enum tcCmd {cEmpty = 0, cStart, cVersion, cInfo, cStop, cState, cPid, cReconfig, cPause, cResume};
 
 tcCmd   GetCmd(char *s);
@@ -97,6 +99,9 @@ int 	main(int argc, char* argv[])
           exit (EXIT_FAILURE);
   }
 
+  pConfig 			= NULL;
+  pLoggerMutex 		= NULL;
+  pClientMessage	= NULL;
 
   if (!InitLogSystemSetup(argv[2]))
   {
@@ -119,11 +124,22 @@ int 	main(int argc, char* argv[])
    }
 
   logger::ptr_log = new logger::TInfoLog((char*)pConfig->get_logfile().c_str(), pConfig->get_logsize(), pConfig->get_loglevel(), (char*) pConfig->get_header().c_str());
+
   std::ostringstream s;
-  s << "Hello World";
-  winfo(s);
 
   InitLoggerMutex();
+
+  logger_thread = pthread_self();
+  handler_proc::create_message_handler_thread();
+  pClientMessage = new TClientMessage(/*pthread_self()*/handler_proc::message_handler_thread, CurrentStoreType = pConfig->CurrentStoreType, /*pConfig->max_list_size()*/1, pConfig->CheckPeriod());
+
+  if (!pClientMessage)
+  {
+	  FreeMemory();
+	  s << "Error creating pClientMessage";
+	  winfo(s);
+      return EXIT_FAILURE;
+  }
 
   tclient_socket *Socket = new tclient_socket((char*)pConfig->LocalAddress().c_str(), pConfig->LocalPort(), 300);
   if (Socket)
@@ -258,37 +274,36 @@ void FatalSigHandler(int sig)
 
 void Sig_Handler(int sig)
 {
-  std::cout << "SigTerm = " << sig << endl;
-  /*   if (pMainDispatcher)
-    {
-        switch (sig)
-        {
-            case  SIGTERM :  DisposeProcess();
-                             exit(EXIT_SUCCESS);
-                             break ;
-            case  SIGHUP  :  pMainDispatcher->Set_SIGHUP();
-                             break;
-            case  SIGTSTP :  pMainDispatcher->Set_SIGTSTP();
-                             break;
-            case  SIGCONT :  pMainDispatcher->Set_SIGCONT();
-                             break;
-            case  SIGUSR1 :  pMainDispatcher->Set_SIGUSR1();
-            default       :  sig = 0;
-        }
-    }
- */
+  std::cout << "Signal: " << sig << endl;
+//  if (sig == SIGTERM)
+  {
+	  FreeMemory();
+  	  exit(EXIT_SUCCESS);
+  }
 }
 
 void    FreeMemory()
 {
-  DeleteLogSystemSetup();
-  DeleteLogMutex();
+  std::cout << "FreeMemory()" << endl;
+  DeleteLogSystemSetup();	// pConfig
+  DeleteLogMutex();			// pLoggerMutex
 
   if (logger::ptr_log)
   {
 	  delete logger::ptr_log;
 	  logger::ptr_log = NULL;
   }
+
+  if (pClientMessage)
+  {
+	  delete pClientMessage;
+	  pClientMessage = NULL;
+  }
+
+  std::cout << "Signal pthread_cancel" << endl;
+  pthread_cancel(handler_proc::message_handler_thread);
+  std::cout << "Signal pthread_join" << endl;
+  pthread_join(handler_proc::message_handler_thread, NULL);
 
   unlink(pidfile_name);
   free(pidfile_name);

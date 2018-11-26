@@ -54,6 +54,8 @@ private:
 
     pthread_mutex_t lockErrorMonitor;
 
+
+
     bool     SetSomeError(int);
     bool     MutexLock(pthread_mutex_t*  );
     bool     MutexUnlock(pthread_mutex_t*);

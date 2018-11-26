@@ -1,7 +1,7 @@
 #ifndef TLOGMSG_H
 #define TLOGMSG_H
 #include "common.h"
-#include <deque>
+//#include <queue>
 #include <list>
 
 #define HEADER_DOMAIN   "<domain>"
@@ -10,7 +10,8 @@
 #define HEADER_COMMAND  "<command>"
 #define HEADER_ERROR    "<error>"
 
-typedef deque<string> v_messagelist;
+
+//typedef deque<string> v_messagelist;
 
 namespace msgevent
 {
@@ -82,6 +83,7 @@ private:
     unsigned short GetHeadersValue();
     void           ParseString(string);
 };
+
 typedef std::list<TLogMsg> mList;
 
 #endif // TLOGMSG_H

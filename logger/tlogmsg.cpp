@@ -20,9 +20,9 @@ void    TLogMsg::ParseString(string Str)
          return;
     }
 
-    char *str = new char[Str.size()+1];
+    char *str = strdup(Str.data());//   new char[Str.size()+1];
     if (str)
-    {   strcpy(str,  Str.c_str());
+    {   //strcpy(str,  Str.c_str());
 
         m_domain   = GetHeader(str, HEADER_DOMAIN);
         m_cmd      = GetHeader(str, HEADER_COMMAND);
@@ -32,7 +32,7 @@ void    TLogMsg::ParseString(string Str)
         m_ierror   = m_error.empty() ? 0 : atoi(m_error.c_str());
 
         m_ErrorHeadersValue = GetHeadersValue();
-        delete [] str;
+        free(str); //delete [] str;
         str = NULL;
     }
     SetEvent(m_cmd);
@@ -176,7 +176,6 @@ string  TLogMsg::FilePath()
 
 void TLogMsg::SetEvent(string ev)
 {
-    //ev = common::xstrupper(ev);
     std::transform(ev.begin(), ev.end(), ev.begin(), ::toupper);
 
     if (ev.empty()) m_Event = msgevent::evMsg;

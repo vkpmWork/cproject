@@ -16,10 +16,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "mqueue.h"
-#include "log.h"
 #include <netdb.h>
 #include <sys/wait.h>
-#include "handler_proc.h"
 
 
 #define MAXLEN   4096
@@ -227,8 +225,8 @@ bool  tclient_socket::do_accept()
                                  }
 */
 
-                         handler_proc::on_client_connect(&clientfd);
-                         //handler_proc::handler_playlist_thread(&clientfd);
+                         handler_proc::create_client_thread(&clientfd);
+                         //handler_proc::handler_client_thread(&clientfd);
          }
 
          return true;

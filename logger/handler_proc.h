@@ -12,6 +12,9 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include "clientmessage.h"
+#include "log.h"
+#include "handler_proc.h"
 
 /*
  * Компилировать:
@@ -20,10 +23,14 @@
 
 namespace handler_proc
 {
+extern pthread_t 	  message_handler_thread;
 
 
 void  		 track_timeout(int value);
-void *handler_playlist_thread(void *m_clientfd);
-void		 on_client_connect(int *clientfd);
+void 		*handler_client_thread(void *m_clientfd);
+void		 create_client_thread(int *clientfd);
+
+void 		*handler_message_thread(void*);
+void		 create_message_handler_thread();
 }
 #endif /* HANDLER_PROC_H_ */

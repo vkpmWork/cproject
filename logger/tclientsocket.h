@@ -10,6 +10,8 @@
 
 #include <string>
 #include "loggermutex.h"
+#include "log.h"
+#include "handler_proc.h"
 
 #define SOCKET_BLOCK    0
 #define SOCKET_NONBLOCK 1

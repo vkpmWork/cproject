@@ -147,7 +147,7 @@ bool  tabstractfile :: FileExists(string f)
     if (!isOk)
     {
         f.append("- File not Exists");
-        //pInternalLog->LOG_OPER( levWarning, f);
+ //       //pInternalLog->LOG_OPER( levWarning, f);
     }
     return isOk;
 }
