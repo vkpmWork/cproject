@@ -27,7 +27,9 @@ pthread_t 	  message_handler_thread;
 
 void Msg_to_local_store (Mmessagelist ml)
 {
-	filethread *pWrk_file = new (ml);
+	std::cout <<"Msg_to_local_store\n";
+
+	filethread *pWrk_file = new filethread(ml);
 	if (pWrk_file) pWrk_file->RunWork();
 	delete pWrk_file; pWrk_file = NULL;
 
@@ -35,8 +37,9 @@ void Msg_to_local_store (Mmessagelist ml)
 
 void Msg_to_remote_store(Mmessagelist ml)
 {
-
+	std::cout << " Msg_to_remote_store\n";
 }
+
 void handler_timer(int signo)
 {
 
@@ -225,8 +228,10 @@ void *handler_message_thread(void*)
 	    if (svalue.sival_int == MSG_TYPE)
 	    {
 	    	if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexLock();
-	    	Mmessagelist mml = *(Mmessagelist*)svalue.sival_ptr;
+	    	Mmessagelist mml =  pClientMessage->message_list;
+	    	pClientMessage->ClearMessageList();
 	    	if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexUnlock();
+
 		    pConfig->CurrentStoreType == Logger_namespace::LOCAL_STORE ? Msg_to_local_store (mml) : Msg_to_remote_store(mml);
 	    }
 	    else

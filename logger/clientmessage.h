@@ -16,7 +16,9 @@ typedef map<string, Vmessage> Mmessagelist; /* domain/filename + сообщен�
 class TClientMessage
 {
 public:
-	TClientMessage(pthread_t m_msg_thread, Logger_namespace::tcStore store, ulong, uint);
+    Mmessagelist    message_list;
+
+    TClientMessage(pthread_t m_msg_thread, Logger_namespace::tcStore store, ulong, uint);
     void        AddMessage(TLogMsg *m);
     inline      msgevent::tcEvent Cmd()
                 { return m_cmd; }
@@ -25,9 +27,10 @@ public:
     bool        TransmitFromLocalLog();
     bool        TransmitFromLocalLog(bool);
 
+    void 		ClearMessageList();
+
     ~TClientMessage();
 private:
-    Mmessagelist    message_list;
     pthread_t 	    msg_thread;
 
     unsigned short  MaxStoreListSize;

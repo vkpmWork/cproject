@@ -46,12 +46,12 @@ void    TClientMessage::AddMessage(TLogMsg *m)
    {
         case msgevent::evMsg     :
         case msgevent::evDelete  : if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexLock();
-        						   if (ev != msgevent::evMsg)
+        						   if (ev == msgevent::evMsg)
         						   {
         							   message_list[m->GlobalFileName()].push_back(m->Message());
         							   OnReadyTransmitMessage();
         						   }
-        						   else OnDeleteMessage(/*m->GlobalFileName()*/"/home/irina/log.txt");
+        						   else OnDeleteMessage(m->GlobalFileName());
 
          						   if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexUnlock();
                                    break;
@@ -89,17 +89,15 @@ bool TClientMessage::TransmitFromLocalLog(bool value)
     return FTransmitFromLocalLog;
 }
 
+void TClientMessage::ClearMessageList()
+{
+	for (Mmessagelist::iterator it = message_list.begin(); it != message_list.end(); it++ ) ((*it).second).clear();
+	message_list.clear();
+}
+
 
 TClientMessage::~TClientMessage()
 {
-/*
-    if (pTimerTramsmitMessage)
-    {
-        pTimerTramsmitMessage->stop();
-        delete pTimerTramsmitMessage;
-        pTimerTramsmitMessage = NULL;
-    }
-*/
 	std::ostringstream s;
 	s.str("Destructor TClientMessage - Ok");
 	wmsg(s, common::levDebug);

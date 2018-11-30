@@ -247,7 +247,7 @@ uint tconfig::CheckPeriod()
 
 string  tconfig::Folder()
 {
-    if (m_folder[0] != DELIMITER) m_folder =  DELIMITER + m_folder;
+    if (m_folder[0] != DELIMITER && m_folder[0] != '.') m_folder =  DELIMITER + m_folder;
     if (m_folder[m_folder.size()-1] != DELIMITER) m_folder += DELIMITER;
     return  m_folder;
 }

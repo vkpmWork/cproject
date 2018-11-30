@@ -1,13 +1,14 @@
 #include "file.h"
 #include <dirent.h>
 #include <sys/stat.h>
-#include "clientmessage.h"
 #include "loggermutex.h"
-#include "logsystemsetup.h"
+#include "log.h"
+#include "config.h"
 #include <pwd.h>
 #include <grp.h>
-#include <QDebug>
+#include <libgen.h>
 
+#define DEFAULT_BASE_FILE_NAME     "LogFile.log"
 
 string fileName;
 
@@ -41,32 +42,28 @@ int sel (const struct dirent *d)
 
 //-----------------------------------------------------
 
-filethread::filethread(v_messagelist m_list, QObject *parent, tabstractfile *):
-    QObject(parent)
-  , tabstractfile()
-  , msg_list(m_list)
+filethread::filethread(Mmessagelist  m_list) : tabstractfile()
+	, msg_list(m_list)
 {
     pthread_mutex_init(&msg_lock, NULL);
 
-    CategoryStore  = ptrLoggerSetup->CurrentStoreType;
+    CategoryStore  = pConfig->CurrentStoreType;
 
-    Path           = ptrLoggerSetup->Folder();
-    MaxFileSize    = ptrLoggerSetup->max_size();
+    Path           = pConfig->Folder();
+    MaxFileSize    = pConfig->max_size();
     fl_changeowner = false;
-    Mode_Dir       = ptrLoggerSetup->mode_dir_local();
-    Mode_File      = ptrLoggerSetup->mode_file_local();
-    Max_archive_count = ptrLoggerSetup->max_archive_count();
+    Mode_Dir       = pConfig->mode_dir_local();
+    Mode_File      = pConfig->mode_file_local();
+    Max_archive_count = pConfig->max_archive_count();
 
     ClearMemo();
 
-    fl_changeowner = CheckOwner(ptrLoggerSetup->owner_user_local(), ptrLoggerSetup->owner_group_local());
+    fl_changeowner = CheckOwner(pConfig->owner_user_local(), pConfig->owner_group_local());
 
     SomeError             = !MakeDirectory(Path, Mode_Dir, Owner_user, Owner_group);
     Default_base_fileName = DEFAULT_BASE_FILE_NAME;
 
     Default_base_filePath = Path+Default_base_fileName;
-    if (CategoryStore == LOCAL_STORE) connect(this, SIGNAL(continue_work()), this, SLOT(RunWork()), Qt::QueuedConnection);
-
 }
 
 filethread :: ~filethread()
@@ -85,13 +82,13 @@ void filethread::SetUnlock()
     pthread_mutex_unlock(&msg_lock);
 }
 
-void filethread :: onMsg_list_append(v_messagelist m_list)
+void filethread :: onMsg_list_append(Mmessagelist m_list)
 {
-    v_messagelist m = m_list;
+	Mmessagelist m = m_list;
     if (!m.size()) return;
 
     SetLock();
-    msg_list.insert(msg_list.end(), m.begin(), m.end());
+// !!!    msg_list.insert(msg_list.end(), m.begin(), m.end());
     SetUnlock();
     RunWork();
 }
@@ -109,13 +106,34 @@ bool filethread ::empty_msg_list()
 
 void filethread :: RunWork()
 {
-    SetLock();
-     v_messagelist msg = msg_list;
-     msg_list.clear();
-     MasCounter -= msg.size();
-    SetUnlock();
+//	typedef vector<string> Vmessage; /* список сообщений от клиентов */
+//	typedef map<string, Vmessage> Mmessagelist; /* domain/filename + сообщение */
 
-    TLogMsg m;
+
+	Vmessage    msg;
+	std::string m_file;
+	std::string m_str;
+	char* m_dir;
+	if (CategoryStore == Logger_namespace::LOCAL_STORE)
+    {
+    	for (Mmessagelist::iterator it = msg_list.begin(); it != msg_list.end(); it++ )
+    	{
+    			m_file = (*it).first;
+
+    			m_dir = strdup(m_file.c_str());
+    			if (!CheckFileDirectory(dirname(m_dir))) continue;
+    			free(m_dir);
+
+    			msg    = (*it).second;
+    			m_str.clear();
+
+    			for (Vmessage::iterator itr = msg.begin(); itr != msg.end(); itr++)	m_str.append(*itr);
+
+    			if (!m_str.empty()) Write(m_file, m_str);
+    	}
+
+    }
+/*    TLogMsg m;
     string  s  = msg.front();
     m.Message(s);
 
@@ -131,11 +149,11 @@ void filethread :: RunWork()
 
     }
    Write();
-
-   if (empty_msg_list()) emit finished();
-   else RunWork();
+*/
+//   if (empty_msg_list()) emit finished();
+//   else RunWork();
 }
-
+/*
 bool filethread :: RunLocal(v_messagelist m_list, v_messagelist::iterator it, v_messagelist::iterator it_last)
 {
         bool return_value = false;
@@ -153,7 +171,7 @@ bool filethread :: RunLocal(v_messagelist m_list, v_messagelist::iterator it, v_
             m = *it;
             memset(ch, 0, 2);
 
-            sz = m.size() + 1 /* MARKER_END */;
+            sz = m.size() + 1 // MARKER_END ;
 
             memmove(ch, &sz, sizeof(ushort));
             s.append(ch, 2);
@@ -185,16 +203,16 @@ bool filethread :: RunLocal(v_messagelist m_list, v_messagelist::iterator it, v_
 
         return return_value;
 }
-
+*/
 
 void filethread :: TryToWrite(TLogMsg* m)
 {
-    if (CategoryStore == LOCAL_STORE)
+    if (CategoryStore == Logger_namespace::LOCAL_STORE)
     {
         if (m->Event() == msgevent::evMsg)
         {   if (CompareFileName(Path + m->GlobalFileName()) == false)
             {
-                Write();
+                //Write();
                 UpdateMemoInfo(m);
             }
         }
@@ -205,27 +223,25 @@ void filethread :: TryToWrite(TLogMsg* m)
              }
     }
 
-    AppendStrInMemo(CategoryStore == LOCAL_STORE ? m->msg() : m->Message());
+    AppendStrInMemo(CategoryStore == Logger_namespace::LOCAL_STORE ? m->msg() : m->Message());
 }
 
-void filethread :: Write()
+void filethread :: Write(std::string m_f, std::string s)
 {
-    if (Memo.StrInMemory.empty()) return;
-    if (!CheckFileDirectory())    return;
+	if (pLoggerMutex) pLoggerMutex->Write_MutexLock();
 
-    if (pLoggerMutex) pLoggerMutex->Write_MutexLock();
-
-    int  pFile = OpenFileForAppend(Path+Memo._FileName()); //CheckFileForWriting(Path+Memo._FileName());
+    int  pFile = OpenFileForAppend(Path+m_f); //CheckFileForWriting(Path+Memo._FileName());
 
     if (pFile >= 0)
     {
-        WriteFile(pFile, Memo.StrInMemory);
+        std::cout << "Write: " << s << endl;
+        WriteFile(pFile, s);
 
         size_t sz = tabstractfile::FileSize(pFile);
 
         FileClose(pFile);
 
-        if (CategoryStore == LOCAL_STORE && sz > (size_t)MaxFileSize) RecreateFileList();
+        if (CategoryStore == Logger_namespace::LOCAL_STORE && sz > (size_t)MaxFileSize) RecreateFileList(m_f);
     }
 
     if (pLoggerMutex) pLoggerMutex->Write_MutexUnlock();
@@ -240,7 +256,7 @@ void filethread :: UpdateMemoInfo(TLogMsg* m)
 {
     ClearMemo();
 
-    if (CategoryStore == LOCAL_STORE)
+    if (CategoryStore == Logger_namespace::LOCAL_STORE)
     {
         Memo.FileName = m->filename();
         Memo.FilePath = m->FilePath();
@@ -268,9 +284,9 @@ string filethread :: CheckFileName(string str)
     return str;
 }
 
-bool filethread::CheckFileDirectory()
+bool filethread::CheckFileDirectory(string m_file)
 {
-    SomeError = !MakeDirectory(Path, Memo.FilePath, Mode_Dir, Owner_user, Owner_group);
+	SomeError = !MakeDirectory(Path, m_file, Mode_Dir, Owner_user, Owner_group);
     return SomeError == false;
 }
 /*
@@ -282,7 +298,9 @@ size_t filethread :: FileSize  (int fd)
 
 int    filethread :: OpenFileForAppend(string s)  /* открываем файл для дозаписи */
 {
-    bool file_exists = FileExists(s);
+    std::cout << "OpenFileForAppend 1: " << s << endl;
+	bool file_exists = FileExists(s);
+    std::cout << "OpenFileForAppend 2: " << s << endl;
     int fd = tabstractfile::FileOpen(s, AppendFileMode());
     if (fd > 0)
     {
@@ -300,13 +318,11 @@ int    filethread :: OpenFileForTruncate(string s)  /* */
     return tabstractfile::FileOpen(s.c_str(), TruncateFileMode());
 }
 
-void     filethread :: RecreateFileList()
+void     filethread :: RecreateFileList(string m_f)
 {
-    string dir     = Path + Memo.FilePath,
-                     fileExt = "";
+    string dir     = Path + m_f, fileExt = "";
 
-    fileName       = Memo.FileName;
-//    struct stat      buf;
+    fileName       = m_f;
     struct dirent ** entry;
 
     uint n = scandir(dir.c_str(), &entry, sel, alphasort);
@@ -321,6 +337,7 @@ void     filethread :: RecreateFileList()
     string str;
     ulong index = n < Max_archive_count ? 0 : n - Max_archive_count;
 
+    std::ostringstream m;
     for (uint i = 0;i < n; i++)
     {
         str = dir+entry[i]->d_name;
@@ -331,8 +348,9 @@ void     filethread :: RecreateFileList()
             sprintf(f, "%s%s.%05lu.%s", dir.c_str(), fileName.c_str(), i - index, fileExt.c_str());
 
             if (rename(str.c_str(), f) != 0)
-            {   sprintf(f, "Не могу переименовать файл %s\n", str.c_str());
-                LOG_OPER(f);
+            {   m.str("");
+            	m << "Не могу переименовать файл " << str;
+                winfo(m);
             }
 
         }
@@ -387,9 +405,13 @@ inline int filethread :: FileDelete(string f)
     int err = tabstractfile::FileDelete(f);
 
     if (!err) return 0;
+
+    ostringstream m;
+    if (!err) return 0;
     else if (err != EISDIR)
          {
-                pInternalLog->LOG_OPER( levWarning, strerror(err) + f);
+                m << strerror(err) << ": " << f;
+                winfo(m);
                 return 0;
          }
 
@@ -401,9 +423,10 @@ inline int filethread :: FileDelete(string f)
     {
         memset(s, 0, PATH_MAX);
         strcpy(s, f.c_str());
-        f = ClearDirectory(s);
+        f = common::ClearDirectory(s);
         delete [] s; s = NULL;
-        pInternalLog->LOG_OPER(levWarning, f);
+        m << f;
+        wmsg(m, common::levWarning);
     }
     return 0;
 }
@@ -444,16 +467,20 @@ bool filethread ::CheckOwner(string owneruser, string ownergroup)
 
     struct passwd *pw = getpwnam(owneruser.c_str()); /* узнаем uid пользователя по его имени */
 
+    ostringstream m;
     if (pw) Owner_user  = pw->pw_uid;
     else
-    {    if (pInternalLog) pInternalLog->LOG_OPER("User named not found : " + owneruser);
+    {    m << "User named not found : " <<  owneruser;
+    	 winfo(m);
          Owner_user  = 0;
     }
 
     struct group *gr = getgrnam(ownergroup.c_str());
     if (gr) Owner_group = gr->gr_gid;
     else
-    {    if (pInternalLog) pInternalLog->LOG_OPER("Group named not found : " + ownergroup);
+    {    m.str("");
+    	 m << "Group named not found : " << ownergroup;
+    	 winfo(m);
          Owner_group = 0;
     }
 
@@ -474,7 +501,12 @@ void filethread ::ChangeOwner(int fd)
         if (bufstat.st_gid != Owner_group) ow_group = Owner_group;
 
         if (ow_user != 0 || ow_group != 0)
-             if (fchown(fd, ow_user, ow_group) == -1 && pInternalLog) pInternalLog->LOG_OPER(QString("Can't' change LogFile.log owner or group. %1").arg(strerror(errno)).toStdString().c_str());
+             if (fchown(fd, ow_user, ow_group) == -1)
+             {
+                 ostringstream m;
+            	 m << "Can't' change LogFile.log owner or group. " << strerror(errno);
+            	 winfo(m);
+             }
     }
 }
 
@@ -485,11 +517,11 @@ void filethread ::ChangeMode(int fd)
     struct stat bufstat;
     if (FileStat(fd, bufstat) )
         if (bufstat.st_mode != Mode_File)
-             if (fchmod(fd, Mode_File) == -1 && pInternalLog)
+             if (fchmod(fd, Mode_File) == -1)
              {
-                 string s = "ChangeMode(int fd). Can't' change file mode.";
-                 s.append(strerror(errno));
-                 pInternalLog->LOG_OPER(s);
+                 ostringstream m;
+            	 m << "ChangeMode(int fd). Can't' change file mode. " << strerror(errno);
+                 winfo(m);
              }
 }
 
@@ -505,7 +537,7 @@ int filethread ::DeleteFile(int pFile, string s)
 }
 
 
-
+/*
 v_messagelist filethread ::GetLocalMsgList()
 {
 
@@ -566,7 +598,7 @@ v_messagelist filethread ::GetLocalMsgList()
      }
      return m;
 }
-
+*/
 /* --------------------------------------------------- */
 /* --------------------------------------------------- */
 /* --------------------------------------------------- */
@@ -695,7 +727,6 @@ char* tlocalfile::Getlocalfilebuffer()
     char *pos          = NULL;
 
     if (plocalfilebuffer)
-        string          PrepareForSend(v_messagelist &);
     {
         size_t sz_short  = MSG_SIZE;
         ushort sz = 0;

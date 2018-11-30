@@ -9,6 +9,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <libgen.h>
+#include <limits.h>
+#include <ctime>
+#include <dirent.h>
 //#include <cstring>
 //using namespace std;
 
@@ -556,6 +559,75 @@ long long int ConvertToDecFromOct(string s)
 {
 	char *ptr;
 	return strtoll(s.c_str(), &ptr, 8);
+}
+
+
+string ClearDirectory(char *dir)
+{
+    string s_event;
+
+    char   dr[PATH_MAX];
+    struct dirent *entry;
+
+    DIR *dp = opendir(dir);
+    if (!dp)
+    {
+        s_event.append("No such directory :");
+        s_event.append(dir);
+        s_event.append(MARKER_END);
+        return s_event;
+    }
+    getcwd(dr, PATH_MAX);
+    chdir(dir);
+
+    while( (entry = readdir(dp)) != NULL )
+    {
+        if ( strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..") )
+        {
+            if (unlink(entry->d_name) != 0)
+            {
+                if (errno == EISDIR)
+                {
+
+                    char *newdir = new char[PATH_MAX];
+                    if (newdir)
+                    {
+                        memset(newdir, 0, PATH_MAX);
+                        strcpy(newdir, dir);
+                        strcat(newdir, entry->d_name);
+                        strcat(newdir, STRDELIMITER);
+                        strcat(newdir, END_STR);
+                        ClearDirectory(newdir);
+                        delete [] newdir; newdir = NULL;
+                    }
+                }
+                else
+                {
+                    s_event.append(strerror(errno));
+                    s_event.append(entry->d_name);
+                    s_event.append(MARKER_END);
+                }
+            }
+            else
+            {
+                s_event.append("File successfully deleted :");
+                s_event.append(entry->d_name);
+                s_event.append(MARKER_END);
+            }
+        }
+    }
+    closedir(dp);
+
+    chdir(dr);
+    if (rmdir(dir) != -1)
+    {
+        s_event.append("Directory successfully deleted :");
+        s_event.append(dir);
+        s_event.append(MARKER_END);
+    }
+    else strerror(errno);
+
+    return s_event;
 }
 
 }/* namespace */

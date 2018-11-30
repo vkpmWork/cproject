@@ -102,7 +102,8 @@ int tabstractfile :: FileDelete(string f)
 
 void tabstractfile ::WriteFile(int pFile, string s)
 {
-    if (pFile < 0) return;
+    std::cout << "WriteFile: " << s << endl;
+	if (pFile < 0) return;
 
     size_t sz  = s.size();
 
@@ -157,35 +158,40 @@ bool tabstractfile :: MakeDirectory(string dir, mode_t mode, uid_t uid, gid_t gi
         if (dir.empty()) return false;
         if(dir[dir.size()-1] != DELIMITER) dir += DELIMITER;
 
-        bool mdret = mkdir(dir.c_str(), ConvertToDecFromOct(DEFAULT_DIR_MODE)) == 0 || errno == EEXIST;
+        bool mdret = mkdir(dir.c_str(), common::ConvertToDecFromOct(DEFAULT_DIR_MODE)) == 0 || errno == EEXIST;
 	
-	if (errno == EEXIST) return true; // 09.12.14
+    	if (errno == EEXIST) return true; // 09.12.14
 	
-        if (!mdret)
+        std::ostringstream m;
+    	if (!mdret)
         {
             
-            char s[100];
-            sprintf(s,"Couldn't' create directory %s. Permission denied!", dir.c_str());
-            LOG_OPER(s);
+            m << "Couldn't' create directory " << dir << " Permission denied!";
+            winfo(m);
             return false;
         }
 
        string str;
        if (uid != -1 || gid != -1)
-            if (chown(dir.c_str(), uid, gid) == -1 && pInternalLog)
+            if (chown(dir.c_str(), uid, gid) == -1)
             {
                 str = "tabstractfile :: MakeDirectory. Couldn't change directory user name or group name.";
                 str.append(strerror(errno));
             }
 
         if (mode > 0)
-           if (chmod(dir.c_str(), mode) == -1 && pInternalLog)
+           if (chmod(dir.c_str(), mode) == -1)
            {
                str.append("\ntabstractfile :: MakeDirectory. Couldn't change directory mode.");
                str.append(strerror(errno));
            }
 
-        if (!str.empty()) pInternalLog->LOG_OPER(levWarning, str);
+        if (!str.empty())
+        {
+        	m << str;
+        	winfo(m);
+
+        }
         return (bool) mdret;
 }
 
@@ -208,34 +214,38 @@ bool tabstractfile :: MakeDirectory(string sf, string s, mode_t mode, uid_t uid,
 
         if(!dir.size()) continue; // if leading / first time is 0 length
 
-        mdret = mkdir(dir.c_str(), ConvertToDecFromOct(DEFAULT_DIR_MODE)) == 0 || errno == EEXIST;
+        mdret = mkdir(dir.c_str(), common::ConvertToDecFromOct(DEFAULT_DIR_MODE)) == 0 || errno == EEXIST;
 
-	if (errno == EEXIST) continue; // 09.12.14
+        if (errno == EEXIST) continue; // 09.12.14
 
+        std::ostringstream m;
         if (!mdret)
         {
-            char s[100];
-            sprintf(s,"Couldn't' create directory %s. Permission denied!", dir.c_str());
-            LOG_OPER(s);
+            m << "Couldn't' create directory "<< dir << " Permission denied!";
+            winfo(m);
             break;
         }
 
         string str;
         if (uid != -1 || gid != -1)
-            if (chown(dir.c_str(), uid, gid) == -1 && pInternalLog)
+            if (chown(dir.c_str(), uid, gid) == -1)
             {
                 str = "tabstractfile :: MakeDirectory. Couldn't change directory user name or group name.";
                 str.append(strerror(errno));
             }
 
         if (mode > 0)
-           if (chmod(dir.c_str(), mode) == -1 && pInternalLog)
+           if (chmod(dir.c_str(), mode) == -1)
            {
                str.append("\ntabstractfile :: MakeDirectory. Couldn't change directory mode.");
                str.append(strerror(errno));
            }
 
-        if (!str.empty()) pInternalLog->LOG_OPER(levWarning, str);
+        if (!str.empty())
+        {
+        	m << str;
+        	winfo(m);
+        }
     }
     return (bool) mdret;
 }

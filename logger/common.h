@@ -32,6 +32,10 @@
 #define COMMAND_RECONFIG           "RECONFIG"
 #define COMMAND_EXIT               "EXIT"
 
+#define STRDELIMITER               "/"
+#define END_STR                    "\0"
+#define MSG_SIZE       sizeof(short)
+
 using namespace std;
 
 template<typename T>
@@ -116,5 +120,8 @@ namespace common
 
 	std::string		GetSubPath(int m_id);
 	long long int 	ConvertToDecFromOct(string s);
+
+	extern string   ClearDirectory(char *);
+
 }
 #endif /* COMMON_H_ */

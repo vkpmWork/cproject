@@ -1,9 +1,7 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include <QTimer>
-#include "tlogmsg.h"
-#include "internallog.h"
+#include "clientmessage.h"
 #include "abstractfile.h"
 
 class tlocalfile : public tabstractfile
@@ -31,22 +29,22 @@ private :
     size_t     m_MessageSize;
 };
 
-class filethread:  public QObject, tabstractfile
+class filethread : public tabstractfile
 {
-    Q_OBJECT
 public :
 
-    explicit    filethread(v_messagelist m_list, QObject *parent = 0, tabstractfile *pfile = 0);
+    explicit    filethread(Mmessagelist m_list);
     ~filethread();
 
 
-    bool          RunLocal(v_messagelist, v_messagelist::iterator, v_messagelist::iterator) ;
+//    bool          RunLocal(Mmessagelist, Mmessagelist::iterator, Mmessagelist::iterator) ;
     bool          someError() { return SomeError; }
     int           DeleteFile(int, string);
     void          UnlinkLocalFile();
     bool          SomeError;
     bool          empty_msg_list();
-    v_messagelist GetLocalMsgList();
+    Mmessagelist  GetLocalMsgList() {}
+    void          RunWork();
 
 private:
     string          Default_base_fileName,
@@ -60,7 +58,7 @@ private:
     } Memo;
     string          Path;
     ulong           MaxFileSize;
-    tcStore         CategoryStore;
+    Logger_namespace::tcStore         CategoryStore;
     ulong           Max_archive_count;
 
     uid_t           Owner_user;
@@ -69,11 +67,11 @@ private:
     mode_t          Mode_Dir;
     mode_t          Mode_File;
 
-    v_messagelist   msg_list;
+    Mmessagelist    msg_list;
     pthread_mutex_t msg_lock;
 
     bool            CompareFileName(string);
-    void            Write();
+    void            Write(std::string m_f, std::string s);
     void            TryToWrite(TLogMsg*);
     void            UpdateMemoInfo(TLogMsg*);
     void            AppendStrInMemo(string);
@@ -81,10 +79,10 @@ private:
     int             OpenFileForAppend(string);
     int             OpenFileForTruncate(string);  /* */
 //    inline   int    CheckFileForWriting(string);
-    bool            CheckFileDirectory();
+    bool            CheckFileDirectory(string m_file);
     string          CheckFileName(string);
     void            ClearMemo()             { Memo.FileName.clear(); Memo.StrInMemory.clear(); Memo.FilePath.clear();}
-    void            RecreateFileList();
+    void            RecreateFileList(string m_f);
 
     inline   void  TryToDeleteFile(TLogMsg*);
     inline   int   FileDelete(string f);
@@ -96,13 +94,15 @@ private:
     inline void    SetLock();
     inline void    SetUnlock();
 
+    void           onMsg_list_append(Mmessagelist);
+
+/*
 public slots:
      void           RunWork();
-     void           onMsg_list_append(v_messagelist);
 signals     :
     void            finished();
     void            continue_work();
-
+*/
 };
 
 #endif // FILE_H
