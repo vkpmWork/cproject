@@ -1,0 +1,17 @@
+<?php
+use MessagePack\Packer;
+use MessagePack\PackOptions;
+use MessagePack\Type\Binary;
+use MessagePack\TypeTransformer\BinaryTransformer;
+use MessagePack\TypeTransformer\MapTransformer;
+use MessagePack\Type\Map;
+//use Packe
+
+require __DIR__.'/vendor/autoload.php';
+
+$packer = new Packer(PackOptions::FORCE_ARR);
+$packer->registerTransformer(new MapTransformer());
+$packedArray = $packer->pack([1, 2, 3]);
+$packedMap = $packer->pack(new Map([1, 2, 3]));
+$packedHash = $packer->pack(new Map(['a' => 1, 'b' => 2, 'c' => 3]));
+var_dump($packedHash);
