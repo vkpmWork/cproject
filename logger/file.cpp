@@ -42,28 +42,30 @@ int sel (const struct dirent *d)
 
 //-----------------------------------------------------
 
-filethread::filethread(Mmessagelist  m_list) : tabstractfile()
+filethread::filethread(Mmessagelist  m_list, msgevent::tcEvent ev_code) : tabstractfile()
 	, msg_list(m_list)
 {
     pthread_mutex_init(&msg_lock, NULL);
-
     CategoryStore  = pConfig->CurrentStoreType;
+	Path           = pConfig->Folder();
 
-    Path           = pConfig->Folder();
-    MaxFileSize    = pConfig->max_size();
-    fl_changeowner = false;
-    Mode_Dir       = pConfig->mode_dir_local();
-    Mode_File      = pConfig->mode_file_local();
-    Max_archive_count = pConfig->max_archive_count();
+    if (ev_code == msgevent::evMsg)
+    {
+			MaxFileSize    = pConfig->max_size();
+			fl_changeowner = false;
+			Mode_Dir       = pConfig->mode_dir_local();
+			Mode_File      = pConfig->mode_file_local();
+			Max_archive_count = pConfig->max_archive_count();
 
-    ClearMemo();
+			ClearMemo();
 
-    fl_changeowner = CheckOwner(pConfig->owner_user_local(), pConfig->owner_group_local());
+			fl_changeowner = CheckOwner(pConfig->owner_user_local(), pConfig->owner_group_local());
 
-    SomeError             = !MakeDirectory(Path, Mode_Dir, Owner_user, Owner_group);
-    Default_base_fileName = DEFAULT_BASE_FILE_NAME;
+			SomeError             = !MakeDirectory(Path, Mode_Dir, Owner_user, Owner_group);
+			Default_base_fileName = DEFAULT_BASE_FILE_NAME;
 
-    Default_base_filePath = Path+Default_base_fileName;
+			Default_base_filePath = Path+Default_base_fileName;
+    }
 }
 
 filethread :: ~filethread()
@@ -133,25 +135,6 @@ void filethread :: RunWork()
     	}
 
     }
-/*    TLogMsg m;
-    string  s  = msg.front();
-    m.Message(s);
-
-    UpdateMemoInfo(&m);
-    while (msg.size())
-    {
-        s = msg.front();
-        msg.pop_front();
-
-        m.Message(s);
-
-        TryToWrite(&m);
-
-    }
-   Write();
-*/
-//   if (empty_msg_list()) emit finished();
-//   else RunWork();
 }
 /*
 bool filethread :: RunLocal(v_messagelist m_list, v_messagelist::iterator it, v_messagelist::iterator it_last)
@@ -205,43 +188,23 @@ bool filethread :: RunLocal(v_messagelist m_list, v_messagelist::iterator it, v_
 }
 */
 
-void filethread :: TryToWrite(TLogMsg* m)
-{
-    if (CategoryStore == Logger_namespace::LOCAL_STORE)
-    {
-        if (m->Event() == msgevent::evMsg)
-        {   if (CompareFileName(Path + m->GlobalFileName()) == false)
-            {
-                //Write();
-                UpdateMemoInfo(m);
-            }
-        }
-        else if (m->Event() == msgevent::evDelete)
-             {
-                  TryToDeleteFile(m);
-                  return;
-             }
-    }
-
-    AppendStrInMemo(CategoryStore == Logger_namespace::LOCAL_STORE ? m->msg() : m->Message());
-}
-
 void filethread :: Write(std::string m_f, std::string s)
 {
+	string ss = Path+m_f;
+
 	if (pLoggerMutex) pLoggerMutex->Write_MutexLock();
 
-    int  pFile = OpenFileForAppend(Path+m_f); //CheckFileForWriting(Path+Memo._FileName());
+    int  pFile = OpenFileForAppend(ss); //CheckFileForWriting(Path+Memo._FileName());
 
     if (pFile >= 0)
     {
-        std::cout << "Write: " << s << endl;
         WriteFile(pFile, s);
 
         size_t sz = tabstractfile::FileSize(pFile);
 
         FileClose(pFile);
 
-        if (CategoryStore == Logger_namespace::LOCAL_STORE && sz > (size_t)MaxFileSize) RecreateFileList(m_f);
+        if (CategoryStore == Logger_namespace::LOCAL_STORE && sz > (size_t)MaxFileSize) RecreateFileList(ss);
     }
 
     if (pLoggerMutex) pLoggerMutex->Write_MutexUnlock();
@@ -298,9 +261,7 @@ size_t filethread :: FileSize  (int fd)
 
 int    filethread :: OpenFileForAppend(string s)  /* открываем файл для дозаписи */
 {
-    std::cout << "OpenFileForAppend 1: " << s << endl;
 	bool file_exists = FileExists(s);
-    std::cout << "OpenFileForAppend 2: " << s << endl;
     int fd = tabstractfile::FileOpen(s, AppendFileMode());
     if (fd > 0)
     {
@@ -320,10 +281,18 @@ int    filethread :: OpenFileForTruncate(string s)  /* */
 
 void     filethread :: RecreateFileList(string m_f)
 {
-    string dir     = Path + m_f, fileExt = "";
+	string fileExt   = "";
+	string _dir, dir;
+	string _fileName;
 
-    fileName       = m_f;
-    struct dirent ** entry;
+	fileName = "";
+    _dir.append(m_f);
+    _fileName.append(m_f);
+
+    dir.append(dirname((char*)_dir.c_str()));
+    fileName.append(basename((char*)_fileName.c_str()));
+
+	struct dirent ** entry;
 
     uint n = scandir(dir.c_str(), &entry, sel, alphasort);
 
@@ -340,12 +309,12 @@ void     filethread :: RecreateFileList(string m_f)
     std::ostringstream m;
     for (uint i = 0;i < n; i++)
     {
-        str = dir+entry[i]->d_name;
+        str = dir+'/'+entry[i]->d_name;
 
         if (i < index) FileDelete(str);
         else
         {
-            sprintf(f, "%s%s.%05lu.%s", dir.c_str(), fileName.c_str(), i - index, fileExt.c_str());
+            sprintf(f, "%s/%s.%05lu.%s", dir.c_str(), fileName.c_str(), i - index, fileExt.c_str());
 
             if (rename(str.c_str(), f) != 0)
             {   m.str("");
@@ -354,7 +323,9 @@ void     filethread :: RecreateFileList(string m_f)
             }
 
         }
+
     }
+
     for (uint i = 0; i < n; free(entry[i++]));
     free(entry);
 }
@@ -364,45 +335,61 @@ int  filethread :: CheckFileForWriting(string s)
     return OpenFileForAppend(s);
 }
 */
-inline void filethread :: TryToDeleteFile(TLogMsg *m)
+void filethread :: TryToDeleteFile()
 {
+	std::cout << "FF DElete: "<< endl;
     list<string>ListFile;
-    string str = m->fullfilename();
 
-    while (true)
-    {
-        size_t pos = str.find_first_of(';');
+    Vmessage    msg;
+	std::string m_domain;
+	std::string str, s;
+	size_t 		pos;
 
-        string s = pos != string::npos ? str.substr(0, pos) : str;
-        if (!s.empty())
-        {
-            if (s[0] != DELIMITER) s = DELIMITER + s;
-            ListFile.push_back(s);
-        }
-        if (pos != string::npos) str = str.substr(pos+1);
-        else break;
-    }
+   	for (Mmessagelist::iterator it = msg_list.begin(); it != msg_list.end(); it++ )
+   	{
+    			m_domain = (*it).first;
 
-    if (!ListFile.size()) return;
+    			msg    = (*it).second;
+    			str.clear();
+
+    			for (Vmessage::iterator itr = msg.begin(); itr != msg.end(); itr++)
+    			{
+    			    str = *itr;
+    				while (true)
+    			    {
+    			        pos = str.find_first_of(';');
+
+    			        s = pos != string::npos ? str.substr(0, pos) : str;
+    			        if (!s.empty())
+    			        {
+    			            if (s[0] != DELIMITER) s = DELIMITER + s;
+    			            s = Path + m_domain + s;
+    			            ListFile.push_back(s);
+    			        }
+    			        if (pos != string::npos) str = str.substr(pos+1);
+    			        else break;
+    			    }
+    			}
+
+   	}
 
     while(ListFile.size())
     {
         str = ListFile.front();
         ListFile.pop_front();
 
-        if (str.empty())  return;
-
-        str = Path + m->domain() + str;
-        FileDelete(str);
+        if ( !str.empty() ) FileDelete(str);
     }
 
 }
 
 inline int filethread :: FileDelete(string f)
 {
-    if (f.at(0) != DELIMITER) f.insert(0, STRDELIMITER);
+    if (f.at(0) != DELIMITER && f.at(0) != '.') f.insert(0, STRDELIMITER);
 
+	if (pLoggerMutex) pLoggerMutex->Write_MutexLock();
     int err = tabstractfile::FileDelete(f);
+	if (pLoggerMutex) pLoggerMutex->Write_MutexUnlock();
 
     if (!err) return 0;
 

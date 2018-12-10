@@ -15,6 +15,9 @@
 #include <signal.h>
 #include <typeinfo>
 
+#include <msgpack.hpp>
+#include <iostream>
+
 #define LOCAL
 
 #ifdef LOCAL
@@ -34,8 +37,43 @@ int     ConfigureSignalHandlers(void);
 void    FatalSigHandler(int sig);
 void    Sig_Handler(int sig);
 void    FreeMemory();
+
+/* =============================================================== */
+
 int 	main(int argc, char* argv[])
 {
+	msgpack::type::tuple<int, bool, std::string> src(1, true, "example");
+
+    // serialize the object into the buffer.
+    // any classes that implements write(const char*,size_t) can be a buffer.
+    std::stringstream buffer;
+    msgpack::pack(buffer, src);
+    std::cout << buffer << std::endl;
+
+    // send the buffer ...
+    buffer.seekg(0, buffer.beg);
+
+    // deserialize the buffer into msgpack::object instance.
+    std::string str(buffer.str());
+
+    msgpack::object_handle oh =
+        msgpack::unpack(str.data(), str.size());
+
+    // deserialized object is valid during the msgpack::object_handle instance is alive.
+    msgpack::object deserialized = oh.get();
+
+    // msgpack::object supports ostream.
+    std::cout << deserialized << std::endl;
+
+    // convert msgpack::object instance into the original type.
+    // if the type is mismatched, it throws msgpack::type_error exception.
+    msgpack::type::tuple<int, bool, std::string> dst;
+    deserialized.convert(dst);
+
+    // or create the new instance
+//    msgpack::type::tuple<int, bool, std::string> dst2 =
+//        deserialized.as<msgpack::type::tuple<int, bool, std::string> >();
+
 
   if (argc < 2)
   {
@@ -129,9 +167,9 @@ int 	main(int argc, char* argv[])
 
   InitLoggerMutex();
 
-  logger_thread = pthread_self();
+//  logger_thread = pthread_self();
   handler_proc::create_message_handler_thread();
-  pClientMessage = new TClientMessage(/*pthread_self()*/handler_proc::message_handler_thread, CurrentStoreType = pConfig->CurrentStoreType, /*pConfig->max_list_size()*/1, pConfig->CheckPeriod());
+  pClientMessage = new TClientMessage(handler_proc::message_handler_thread, CurrentStoreType = pConfig->CurrentStoreType, pConfig->max_list_size(), pConfig->CheckPeriod());
 
   if (!pClientMessage)
   {

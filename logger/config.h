@@ -91,6 +91,7 @@ public:
     bool     IsNeedToCheckErrors();          /* необходимо регистрировать ошибки, все параметры заданы */
     m_emails get_error_emails()             {return m_emails_error;	}
     uint     email_volume()                 {return m_email_volume;	}
+//  ===================
 
     bool	 isdaemon()						{return is_daemon;		}
     std::string get_header()				{return m_header;		}

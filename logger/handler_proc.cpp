@@ -19,19 +19,24 @@
 #include <time.h>
 #include "base64.h"
 #include <sys/socket.h>
+#include <msgpack.hpp>
+#include <map>
 
 namespace handler_proc
 {
 pthread_t 	  message_handler_thread;
 /* Prototypes */
 
-void Msg_to_local_store (Mmessagelist ml)
+void Msg_to_local_store (Mmessagelist ml, msgevent::tcEvent ev_code)
 {
 	std::cout <<"Msg_to_local_store\n";
 
-	filethread *pWrk_file = new filethread(ml);
-	if (pWrk_file) pWrk_file->RunWork();
-	delete pWrk_file; pWrk_file = NULL;
+	filethread *pWrk_file = new filethread(ml, ev_code);
+	if (pWrk_file)
+	{
+		ev_code == msgevent::evMsg ? pWrk_file->RunWork() : pWrk_file->TryToDeleteFile();
+		delete pWrk_file; pWrk_file = NULL;
+	}
 
 }
 
@@ -72,8 +77,8 @@ void   track_timeout(int value)
 {
 	struct itimerval tval;
 
-	timerclear(&tval.it_interval); /* нулевой интервал означает не сбрасывать таймер */
-	timerclear(&tval.it_value);
+//	timerclear(&tval.it_interval); /* нулевой интервал означает не сбрасывать таймер */
+//	timerclear(&tval.it_value);
 
 	div_t d = div(value, 1000);
 
@@ -91,8 +96,7 @@ void   track_timeout(int value)
 void *handler_client_thread(void *m_clientfd)
 {
     ushort ErrorHeadersValue   = 0;
-	int m;
-	m = *(int*)m_clientfd;
+	int m = *(int*)m_clientfd;
 
     pid_t m_child = getpid();
 
@@ -111,7 +115,7 @@ void *handler_client_thread(void *m_clientfd)
                      if (sz > 0)
                      {
                              str.append(buf, sz);
-                             std::cout << " Size: " << sz << " Buffer: " << buf << endl;
+                             std::cout << " Size: " << sz << " Buffer: " << str << endl;
                      }
                      else
                      {
@@ -128,6 +132,26 @@ void *handler_client_thread(void *m_clientfd)
     /* Clean up the client socket */
     shutdown (m, SHUT_RDWR);
     close(m);
+
+
+    std::cout << str.data() << std::endl;    // ["Hello," "World!"]
+
+    // Deserialize the serialized data.
+    msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
+    msgpack::object obj = oh.get();
+
+    // Print the deserialized object to stdout.
+    std::cout << obj << std::endl;    // ["Hello," "World!"]
+
+    // Convert the deserialized object to staticaly typed object.
+    std::map<std::string, int> result;
+    obj.convert(result);
+
+    for (std::map<std::string, int>::iterator it = result.begin(); it != result.end(); it++)
+    {
+    	std::cout << (*it).first << " : " << (*it).second << endl;
+    }
+    return NULL;
 
     std::ostringstream ss;
     ss << m_child << " " << str << endl;
@@ -184,7 +208,7 @@ void *handler_message_thread(void*)
 	sigaddset(&mask, SIGUSR2);
 
 	/*
-	 * Блокируем доставку сигналов SIGRTMIN, SIGRTMIN+1.
+	 * Блокируем доставку сигналов SIGUSR2
 	 * После возвращения предыдущее значение
 	 * заблокированной сигнальной маски хранится в oldmask
 	 */
@@ -205,7 +229,7 @@ void *handler_message_thread(void*)
 	siginfo_t siginfo;
     int 	  recv_sig;
 
-	char *s = NULL;
+	string s;
     while(true)
 	{
       std::cout << "TimeOut\n";
@@ -215,59 +239,21 @@ void *handler_message_thread(void*)
 
 	    perror("sigtimedwait");
         break;
+      }
 
-	  }
-	  else
-	  {
-	    printf("signal %d received. Code %i\n",  recv_sig,  siginfo._sifields._rt.si_sigval.sival_int);
+	  printf("signal %d received. Code %i\n",  recv_sig,  siginfo._sifields._rt.si_sigval.sival_int);
 
-		union sigval svalue;
-	    svalue.sival_ptr =  siginfo._sifields._rt.si_sigval.sival_ptr;
-	    svalue.sival_int =  siginfo._sifields._rt.si_sigval.sival_int;
+	  union sigval svalue;
+	  svalue.sival_int =  siginfo._sifields._rt.si_sigval.sival_int;
 
-	    if (svalue.sival_int == MSG_TYPE)
-	    {
-	    	if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexLock();
-	    	Mmessagelist mml =  pClientMessage->message_list;
-	    	pClientMessage->ClearMessageList();
-	    	if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexUnlock();
+	  if (svalue.sival_int != msgevent::evMsg && svalue.sival_int != msgevent::evDelete) continue;
 
-		    pConfig->CurrentStoreType == Logger_namespace::LOCAL_STORE ? Msg_to_local_store (mml) : Msg_to_remote_store(mml);
-	    }
-	    else
-	    {
-							if (pLoggerMutex) pLoggerMutex->Write_MutexLock();
-	    					s = strdup((char*)svalue.sival_ptr);
-	    					if (pLoggerMutex) pLoggerMutex->Write_MutexUnlock();
+	  if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexLock();
+	  Mmessagelist mml =  pClientMessage->message_list;
+	  pClientMessage->ClearMessageList();
+	  if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexUnlock();
 
-	    					if (s)
-	    					{	std::ostringstream m;
-	    						unlink(s);
-	    						m << "File remove operation: " << s << "Result: " << strerror(errno) << endl;
-	    						logger::write_log(m);
-	    						free(s);
-	    					}
-	    }
-
-/*	    union sigval svalue = siginfo.si_code;
-
-	    int m_sz 		 = svalue.sival_int;
-	    v_messagelist vm;
-
-	    void *VV  = svalue.sival_ptr;
-	    vm = *((v_messagelist*)VV);
-
-	    sleep(3);
-
-	    if (vm.size())
-	    {
-	    std::string ss = vm.front();
-	    std::cout << "MsgString = " << ss << endl;
-	    }
-	    else std::cout << "Empty Queue\n";
-	    count++;
-*/
-	  }
+	  pConfig->CurrentStoreType == Logger_namespace::LOCAL_STORE ? Msg_to_local_store (mml, (msgevent::tcEvent)svalue.sival_int) : Msg_to_remote_store(mml);
 	}
     std::cout << "4\n";
     return NULL;

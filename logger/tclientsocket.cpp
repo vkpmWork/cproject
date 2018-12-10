@@ -19,6 +19,10 @@
 #include <netdb.h>
 #include <sys/wait.h>
 
+//#include <msgpack.hpp>
+
+//#include <iostream>
+//#include <sstream>
 
 #define MAXLEN   4096
 
@@ -92,7 +96,42 @@ tclient_socket::tclient_socket(char *m_host, int m_port, int m_TO)
                 , error(false)
                 , transmit_timeout(m_TO)
 {
-        std::ostringstream msg;
+/*	msgpack::type::tuple<int, bool, std::string> src(1, true, "example");
+
+	    // serialize the object into the buffer.
+	    // any classes that implements write(const char*,size_t) can be a buffer.
+	    std::stringstream buffer;
+	    msgpack::pack(buffer, src);
+
+	    // send the buffer ...
+	    buffer.seekg(0, buffer.beg);
+
+	    // deserialize the buffer into msgpack::object instance.
+	    std::string str(buffer.str());
+
+	    msgpack::object_handle oh =
+	        msgpack::unpack(str.data(), str.size());
+
+	    // deserialized object is valid during the msgpack::object_handle instance is alive.
+	    msgpack::object deserialized = oh.get();
+
+	    // msgpack::object supports ostream.
+	    std::cout << deserialized << std::endl;
+
+	    // convert msgpack::object instance into the original type.
+	    // if the type is mismatched, it throws msgpack::type_error exception.
+	    msgpack::type::tuple<int, bool, std::string> dst;
+	    deserialized.convert(dst);
+
+	    // or create the new instance
+	    msgpack::type::tuple<int, bool, std::string> dst2 =
+	        deserialized.as<msgpack::type::tuple<int, bool, std::string> >();
+*/
+
+//++++++++++++++++++++++++++++++++++++++++
+	    //++++++++++++++++++++++++++++++++++++++++
+	    //++++++++++++++++++++++++++++++++++++++++
+	    std::ostringstream msg;
 
         sock_pid = getpid();
         host = strdup(m_host);

@@ -42,7 +42,7 @@ private:
 
     inline    void  set_transmit_timer(bool);
     inline    void  OnReadyTransmitMessage();
-    inline    void  OnDeleteMessage(std::string);
+    inline    void  OnDeleteMessage(/*std::string*/);
 };
 extern TClientMessage *pClientMessage;
 extern pthread_t logger_thread;

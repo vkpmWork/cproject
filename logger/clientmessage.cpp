@@ -21,19 +21,19 @@ void TClientMessage::OnReadyTransmitMessage()
 	if (message_list.size() < MaxStoreListSize) return;
 
 	union sigval value;
-   	value.sival_int = MSG_TYPE;
+   	value.sival_int = msgevent::evMsg;
+
    	pthread_sigqueue(msg_thread, SIGUSR2, value);
    	std::cout << "OnReadyTransmitMessage()\n";
 }
 
-void TClientMessage::OnDeleteMessage(std::string m_msg)
+void TClientMessage::OnDeleteMessage(/*std::string m_msg*/)
 {
 	union sigval value;
-   	char *p = (char*)m_msg.c_str();
-   	value.sival_ptr = p;
-   	pthread_sigqueue(msg_thread, SIGUSR2, value);
-   	p = (char*)value.sival_ptr;
-   	std::cout << "OnDeleteMessage(std::string m_msg) " << "value.sival_ptr = " << p << endl;
+   	value.sival_int = (int) msgevent::evDelete;
+	pthread_sigqueue(msg_thread, SIGUSR2, value);
+
+	std::cout << "OnDeleteMessage(std::string m_msg) " << "value.sival_int = " << value.sival_int << endl;
 
 }
 
@@ -51,7 +51,11 @@ void    TClientMessage::AddMessage(TLogMsg *m)
         							   message_list[m->GlobalFileName()].push_back(m->Message());
         							   OnReadyTransmitMessage();
         						   }
-        						   else OnDeleteMessage(m->GlobalFileName());
+        						   else
+        						   {
+    		   	   	   	   	   	   	   message_list[m->domain()].push_back(m->fullfilename());
+        							   OnDeleteMessage();
+        						   }
 
          						   if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexUnlock();
                                    break;

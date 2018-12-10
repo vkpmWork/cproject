@@ -33,7 +33,7 @@ class filethread : public tabstractfile
 {
 public :
 
-    explicit    filethread(Mmessagelist m_list);
+    explicit    filethread(Mmessagelist m_list, msgevent::tcEvent ev_code);
     ~filethread();
 
 
@@ -45,6 +45,7 @@ public :
     bool          empty_msg_list();
     Mmessagelist  GetLocalMsgList() {}
     void          RunWork();
+    void   		  TryToDeleteFile();
 
 private:
     string          Default_base_fileName,
@@ -72,7 +73,6 @@ private:
 
     bool            CompareFileName(string);
     void            Write(std::string m_f, std::string s);
-    void            TryToWrite(TLogMsg*);
     void            UpdateMemoInfo(TLogMsg*);
     void            AppendStrInMemo(string);
 
@@ -84,7 +84,6 @@ private:
     void            ClearMemo()             { Memo.FileName.clear(); Memo.StrInMemory.clear(); Memo.FilePath.clear();}
     void            RecreateFileList(string m_f);
 
-    inline   void  TryToDeleteFile(TLogMsg*);
     inline   int   FileDelete(string f);
     inline   bool  CheckFileSize(string);
     int            FileOpen(string, int);
