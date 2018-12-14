@@ -1,7 +1,6 @@
 #ifndef TLOGMSG_H
 #define TLOGMSG_H
 #include "common.h"
-//#include <queue>
 #include <list>
 
 #define HEADER_DOMAIN   "<domain>"
@@ -12,11 +11,6 @@
 
 
 //typedef deque<string> v_messagelist;
-
-namespace msgevent
-{
-    enum tcEvent { evEmpty = 0, evMsg, evDelete, evConfig, evExit};
-}
 
 enum tcErrorHeadersValue
 {

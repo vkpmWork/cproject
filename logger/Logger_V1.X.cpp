@@ -12,6 +12,7 @@
 #include <linux/limits.h>
 #include "tclientsocket.h"
 #include "clientmessage.h"
+#include "errormonitor.h"
 #include <signal.h>
 #include <typeinfo>
 
@@ -148,7 +149,7 @@ int 	main(int argc, char* argv[])
 
        exit (EXIT_FAILURE);
   }
-
+  CurrentStoreType = pConfig->CurrentStoreType;
   ConfigureSignalHandlers();
 
   if (pConfig->isdaemon())
@@ -167,9 +168,12 @@ int 	main(int argc, char* argv[])
 
   InitLoggerMutex();
 
+  if (CurrentStoreType == Logger_namespace::LOCAL_STORE)/* && pConfig->IsNeedToCheckErrors())*/ create_error_monitor_thread();
+
 //  logger_thread = pthread_self();
   handler_proc::create_message_handler_thread();
-  pClientMessage = new TClientMessage(handler_proc::message_handler_thread, CurrentStoreType = pConfig->CurrentStoreType, pConfig->max_list_size(), pConfig->CheckPeriod());
+  pClientMessage = new TClientMessage(handler_proc::message_handler_thread, error_thread, CurrentStoreType = pConfig->CurrentStoreType,
+		  	  	  	  	  	  	      pConfig->max_list_size(), pConfig->CheckPeriod(), pConfig->IsNeedToCheckErrors() ?  pConfig->registered_error_level() : 0);
 
   if (!pClientMessage)
   {
@@ -178,6 +182,8 @@ int 	main(int argc, char* argv[])
 	  winfo(s);
       return EXIT_FAILURE;
   }
+
+  if (CurrentStoreType == Logger_namespace::REMOTE_STORE);
 
   tclient_socket *Socket = new tclient_socket((char*)pConfig->LocalAddress().c_str(), pConfig->LocalPort(), 300);
   if (Socket)
@@ -233,6 +239,7 @@ int ConfigureSignalHandlers(void)
         is used to handle asynchronous I/O. SIGCHLD is very important
         if the server has forked any child processes. */
 
+    signal(SIGUSR1, SIG_IGN);
     signal(SIGUSR2, SIG_IGN);
     signal(SIGPIPE, SIG_IGN);
     signal(SIGALRM, SIG_IGN);
@@ -298,7 +305,7 @@ int ConfigureSignalHandlers(void)
     sigaction(SIGHUP,  &sigtermSA, 0);
     sigaction(SIGTSTP, &sigtermSA, 0);
     sigaction(SIGCONT, &sigtermSA, 0);
-    sigaction(SIGUSR1, &sigtermSA, 0);
+//    sigaction(SIGUSR1, &sigtermSA, 0);
     return 0;
 }
 

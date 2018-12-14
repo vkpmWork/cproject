@@ -6,12 +6,15 @@
 
 TClientMessage *pClientMessage = NULL;
 pthread_t logger_thread;
-TClientMessage::TClientMessage(pthread_t m_msg_thread, Logger_namespace::tcStore store , ulong maxStoreListSize, uint checkPeriod)
-  	  :   msg_thread(m_msg_thread)
+TClientMessage::TClientMessage(pthread_t m_msg_thread, pthread_t m_error_thread, Logger_namespace::tcStore store , ulong maxStoreListSize, uint checkPeriod, uint m_error_level)
+  	  :   msg_thread  (m_msg_thread)
+		, error_thread(m_error_thread)
 		, MaxStoreListSize(maxStoreListSize)
 		, CategoryStore(store)
 		, m_cmd(msgevent::evEmpty)
 		, CheckPeriod(checkPeriod)
+		, ErrorLevel(m_error_level)
+
 {
     FTransmitFromLocalLog = false;
 }
@@ -24,7 +27,6 @@ void TClientMessage::OnReadyTransmitMessage()
    	value.sival_int = msgevent::evMsg;
 
    	pthread_sigqueue(msg_thread, SIGUSR2, value);
-   	std::cout << "OnReadyTransmitMessage()\n";
 }
 
 void TClientMessage::OnDeleteMessage(/*std::string m_msg*/)
@@ -34,6 +36,19 @@ void TClientMessage::OnDeleteMessage(/*std::string m_msg*/)
 	pthread_sigqueue(msg_thread, SIGUSR2, value);
 
 	std::cout << "OnDeleteMessage(std::string m_msg) " << "value.sival_int = " << value.sival_int << endl;
+}
+
+inline void  TClientMessage::OnTransmitError(uint m_error, std::string m_domain, std::string m_msg)
+{
+	union sigval value;
+
+	TMess *mess = new TMess();
+	mess->value = m_error;
+	mess->domain = strdup(m_domain.c_str());
+	mess->msg    = strdup(m_msg.c_str());
+
+   	value.sival_ptr = mess;
+	pthread_sigqueue(error_thread, SIGUSR2, value);
 
 }
 
@@ -50,6 +65,8 @@ void    TClientMessage::AddMessage(TLogMsg *m)
         						   {
         							   message_list[m->GlobalFileName()].push_back(m->Message());
         							   OnReadyTransmitMessage();
+        							   if (0 < ErrorLevel && (uint)m->error() > ErrorLevel)
+        								   	   OnTransmitError(m->error(), m->domain(), m->Message());
         						   }
         						   else
         						   {
@@ -63,13 +80,6 @@ void    TClientMessage::AddMessage(TLogMsg *m)
         case msgevent::evExit    : kill(getpid(), SIGTERM);   break;
         default                  : break;
    }
-
-  // emit add_error(m->error(), (char*)m->domain().c_str(), (char*)m->Message().c_str());
-
-//   if (message_list.size() >= MaxStoreListSize) OnReadyTransmitMessage();
-
-//   if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexUnlock();
-
 }
 bool TClientMessage::TransmitFromLocalLog()
 {

@@ -113,7 +113,7 @@ void tconfig::ReadIni()
 	    m_email_error_timeout       = reader.GetInteger(KEY_LOCAL_STORE, "email_error_timeout",     DEFAULT_EMAIL_ERROR_TIMEOUT);
 
 //	    m_emails_error  = emails_error(settings.value("emails_error", "").toString().toStdString());
-	    if (m_emails_error.empty() || m_emails_error.size()==0)   m_registered_error_level = m_error_counter = 0;\
+//	    if (m_emails_error.empty() || m_emails_error.size()==0)   m_registered_error_level = m_error_counter = 0;
 
 	    m_email_volume  = reader.GetInteger(KEY_LOCAL_STORE, "error_volume", DEFAULT_EMAIL_ERROR_VOLUME);
 	    if (m_email_volume > DEFAULT_EMAIL_ERROR_VOLUME) m_email_volume = DEFAULT_EMAIL_ERROR_VOLUME;

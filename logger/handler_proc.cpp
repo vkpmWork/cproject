@@ -48,7 +48,7 @@ void Msg_to_remote_store(Mmessagelist ml)
 void handler_timer(int signo)
 {
 
-	   pthread_t 	  a_thread;
+//	   pthread_t 	  a_thread;
 	   pthread_attr_t thread_attr;
 
 	   std::ostringstream m;
@@ -115,7 +115,7 @@ void *handler_client_thread(void *m_clientfd)
                      if (sz > 0)
                      {
                              str.append(buf, sz);
-                             std::cout << " Size: " << sz << " Buffer: " << str << endl;
+                             //std::cout << " Size: " << sz << " Buffer: " << str << endl;
                      }
                      else
                      {
@@ -133,7 +133,7 @@ void *handler_client_thread(void *m_clientfd)
     shutdown (m, SHUT_RDWR);
     close(m);
 
-
+/*
     std::cout << str.data() << std::endl;    // ["Hello," "World!"]
 
     // Deserialize the serialized data.
@@ -141,7 +141,7 @@ void *handler_client_thread(void *m_clientfd)
     msgpack::object obj = oh.get();
 
     // Print the deserialized object to stdout.
-    std::cout << obj << std::endl;    // ["Hello," "World!"]
+    std::cout << obj << std::endl;
 
     // Convert the deserialized object to staticaly typed object.
     std::map<std::string, int> result;
@@ -152,7 +152,7 @@ void *handler_client_thread(void *m_clientfd)
     	std::cout << (*it).first << " : " << (*it).second << endl;
     }
     return NULL;
-
+*/
     std::ostringstream ss;
     ss << m_child << " " << str << endl;
     wmsg(ss, common::levDebug);
@@ -217,7 +217,7 @@ void *handler_message_thread(void*)
 
 	/* Задаём время ожидания 1 с */
 	struct timespec tv;
-	tv.tv_sec  = 100;
+	tv.tv_sec  = 60;
 	tv.tv_nsec = 0;
 
 	/*
@@ -232,7 +232,7 @@ void *handler_message_thread(void*)
 	string s;
     while(true)
 	{
-      std::cout << "TimeOut\n";
+//      std::cout << "TimeOut\n";
 	  if ((recv_sig = sigtimedwait(&mask, &siginfo, &tv)) == -1)
 	  {
 	    if (errno == EAGAIN) continue;

@@ -46,6 +46,10 @@ string atos(T a)
     return s.str();
 }
 
+namespace msgevent
+{
+    enum tcEvent { evEmpty = 0, evMsg, evDelete, evConfig, evExit, evError};
+}
 
 namespace Logger_namespace
 {
@@ -83,10 +87,11 @@ namespace common
 	extern const int 	TYPE_INTERNAL;
 	extern const int 	TYPE_LUA;
 
-	extern const char     *version;
-	extern char	      *application_name;
+	extern const char   *version;
+	extern char	      	*application_name;
 
-	extern bool		flag_working;
+	extern bool			flag_working;
+	typedef std::vector<char*> vmsg_box;
 
 	bool 			FileExists(char* str);
 	bool 			FileStatExists(char* str);
@@ -122,6 +127,7 @@ namespace common
 	long long int 	ConvertToDecFromOct(string s);
 
 	extern string   ClearDirectory(char *);
+
 
 }
 #endif /* COMMON_H_ */

@@ -18,7 +18,7 @@ class TClientMessage
 public:
     Mmessagelist    message_list;
 
-    TClientMessage(pthread_t m_msg_thread, Logger_namespace::tcStore store, ulong, uint);
+    TClientMessage(pthread_t m_msg_thread, pthread_t m_error_thread,Logger_namespace::tcStore store, ulong, uint, uint);
     void        AddMessage(TLogMsg *m);
     inline      msgevent::tcEvent Cmd()
                 { return m_cmd; }
@@ -31,18 +31,28 @@ public:
 
     ~TClientMessage();
 private:
-    pthread_t 	    msg_thread;
+    pthread_t 	    msg_thread,
+    				error_thread;
+
 
     unsigned short  MaxStoreListSize;
     Logger_namespace::tcStore         CategoryStore;
     msgevent::tcEvent   m_cmd;
     uint            CheckPeriod;
     volatile  bool  FTransmitFromLocalLog;
-    //QTimer         *pTimerTramsmitMessage;
+    uint			ErrorLevel;
+
+	struct TMess
+	{
+		uint  value;
+		char *domain;
+		char *msg;
+	};
 
     inline    void  set_transmit_timer(bool);
     inline    void  OnReadyTransmitMessage();
     inline    void  OnDeleteMessage(/*std::string*/);
+    inline 	  void  OnTransmitError(uint, std::string, std::string);
 };
 extern TClientMessage *pClientMessage;
 extern pthread_t logger_thread;
