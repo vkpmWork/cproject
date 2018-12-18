@@ -33,7 +33,8 @@ class filethread : public tabstractfile
 {
 public :
 
-    explicit    filethread(Mmessagelist m_list, msgevent::tcEvent ev_code);
+    filethread(Mmessagelist m_list, msgevent::tcEvent ev_code);
+    filethread();
     ~filethread();
 
 
@@ -43,7 +44,7 @@ public :
     void          UnlinkLocalFile();
     bool          SomeError;
     bool          empty_msg_list();
-    Mmessagelist  GetLocalMsgList() {}
+    Vmessage      GetLocalMsgList();
     void          RunWork();
     void   		  TryToDeleteFile();
 

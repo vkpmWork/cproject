@@ -62,10 +62,21 @@ filethread::filethread(Mmessagelist  m_list, msgevent::tcEvent ev_code) : tabstr
 			fl_changeowner = CheckOwner(pConfig->owner_user_local(), pConfig->owner_group_local());
 
 			SomeError             = !MakeDirectory(Path, Mode_Dir, Owner_user, Owner_group);
-			Default_base_fileName = DEFAULT_BASE_FILE_NAME;
-
-			Default_base_filePath = Path+Default_base_fileName;
     }
+
+    Default_base_fileName = DEFAULT_BASE_FILE_NAME;
+	Default_base_filePath = Path+Default_base_fileName;
+}
+
+filethread::filethread()
+{
+    pthread_mutex_init(&msg_lock, NULL);
+    CategoryStore  = pConfig->CurrentStoreType;
+	Path           = pConfig->Folder();
+
+	fl_changeowner = false;
+    Default_base_fileName = DEFAULT_BASE_FILE_NAME;
+	Default_base_filePath = Path+Default_base_fileName;
 }
 
 filethread :: ~filethread()
@@ -524,14 +535,10 @@ int filethread ::DeleteFile(int pFile, string s)
 }
 
 
-/*
-v_messagelist filethread ::GetLocalMsgList()
+Vmessage filethread ::GetLocalMsgList()
 {
 
-    v_messagelist m;
-
-     m.clear();
-
+    Vmessage m;
 
      if (FileExists(Default_base_filePath))
      {
@@ -545,7 +552,7 @@ v_messagelist filethread ::GetLocalMsgList()
 
             if (pFile > -1)
             {
-                char sz_short = MSG_SIZE;
+                char sz_short = 4096;//MSG_SIZE;
                 size_t flength   = FileSize(pFile);
                 string  str   = "";
                 if (flength> 0)
@@ -585,7 +592,7 @@ v_messagelist filethread ::GetLocalMsgList()
      }
      return m;
 }
-*/
+
 /* --------------------------------------------------- */
 /* --------------------------------------------------- */
 /* --------------------------------------------------- */

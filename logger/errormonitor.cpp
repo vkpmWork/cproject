@@ -1,21 +1,20 @@
 
 #include "errormonitor.h"
-#include "loggermutex.h"
 #include "pthread.h"
 #include "log.h"
 #include "config.h"
+#include "email.h"
 
 
 #ifdef _DEBUG
 #include  <iostream>
 #endif
-TErrorMonitor *pErrorMonitor = NULL;
 pthread_t 	   error_thread;
 //----------------------------------------
 void* handler_error_monitor_thread(void*)
 {
 
-    pErrorMonitor = new TErrorMonitor(pConfig->error_counter()
+	TErrorMonitor *pErrorMonitor = new TErrorMonitor(pConfig->error_counter()
                                       , pConfig->registered_error_level()
                                       , pConfig->reset_error_timeout()
                                       , pConfig->email_error_timeout()
@@ -36,7 +35,7 @@ void* handler_error_monitor_thread(void*)
 
 	/* Задаём время ожидания 1 мин */
 	struct timespec tv;
-	tv.tv_sec  = 30;
+	tv.tv_sec  = pConfig->reset_error_timeout();
 	tv.tv_nsec = 0;
 
 	/*
@@ -51,10 +50,13 @@ void* handler_error_monitor_thread(void*)
 	string s;
     while(true)
 	{
-//      std::cout << "Error TimeOut \n";
 	  if ((recv_sig = sigtimedwait(&mask, &siginfo, &tv)) == -1)
 	  {
-	    if (errno == EAGAIN) continue;
+	    if (errno == EAGAIN)
+	    {
+	    	pErrorMonitor->exceeded_reset_timeout();
+	    	continue;
+	    }
 
 	    perror("sigtimedwait");
         break;
@@ -78,10 +80,9 @@ void* handler_error_monitor_thread(void*)
  	  	  continue;
  	  }
 
- 	 std::cout << "Error Monitor: level=" << mess->value << "; domain=" << mess->domain << ": msg=" << mess->str << endl;
+ 	  if (pErrorMonitor) pErrorMonitor->onAdd_error(mess->value, mess->domain, mess->str);
 
-//	  if (pErrorMonitor) pErrorMonitor->onAdd_error(mess->value, mess->domain, mess->str);
- 	  free(mess->domain);
+	  free(mess->domain);
  	  free(mess->str);
  	  free(mess);
 
@@ -129,26 +130,38 @@ TErrorMonitor::TErrorMonitor(   int    m_error_counter
     ErrMonitor.m_registered_error_level = m_registered_error_level;
     ErrMonitor.m_reset_error_timeout    = m_reset_error_timeout;
     ErrMonitor.m_email_error_timeout    = m_email_error_timeout;
+
     ErrMonitor.m_email_volume           = m_email_volume*1024;
-
-
 }
 
 TErrorMonitor::~TErrorMonitor()
 {
 }
 
+inline void TErrorMonitor::send_email(common::vmsg_box m_msg_box)
+{
+    if (m_msg_box.size())
+    {
+    	TEMail      *wrk_email = new TEMail(pConfig->get_error_emails(), m_msg_box);
+        if (wrk_email)
+        {
+        	wrk_email->send_mail();
+        	delete wrk_email;
+        	wrk_email = NULL;
+        }
+    }
+
+}
+
+
 void TErrorMonitor::onAdd_error(int m_error, char* dm, char* msg)
 {
-    if (!m_error) return;
+	if (!m_error) return;
 
-    if ((ErrMonitor.IsNeedToCheckError == false) || (m_error <= ErrMonitor.m_registered_error_level)) return;
+    if (m_error <= ErrMonitor.m_registered_error_level) return;
 
     TDomInfo info;
     bool     fl_email = false;
-
-    set_mutex(true);
-
 
     if (domain.count(dm))
     {
@@ -196,7 +209,7 @@ void TErrorMonitor::onAdd_error(int m_error, char* dm, char* msg)
         info.msg_box.clear();
         info.m_counter = info.msg_box_size = m_msg_box_size = 0;
 
-//        emit send_email(box);
+        send_email(box);
     }
     else
     {
@@ -204,11 +217,6 @@ void TErrorMonitor::onAdd_error(int m_error, char* dm, char* msg)
         info.msg_box_size += m_msg_box_size;
     }
     domain[dm] = info;
-
-
-
-    set_mutex(false);
-
 }
 
 bool TErrorMonitor::counter_overflow(int value)
@@ -252,12 +260,42 @@ bool TErrorMonitor::exceeded_email_timeout(TDomInfo &m)
     return fl_email;
 }
 
-void TErrorMonitor::set_mutex(bool lock_status)
+inline void TErrorMonitor::exceeded_reset_timeout()
 {
 
-    if (pLoggerMutex)
+    time_t now;
+    time(&now);
+
+    map_domain  dm;
+    TDomInfo    info;
+    string      s;
+
+    std::cout << "Domain " << domain.size() << endl;
+    dm = domain;
+
+    vmsg_box::iterator it_box;
+
+    for (map_domain::iterator it = dm.begin(); it != dm.end(); it++)
     {
-            if (lock_status) pLoggerMutex->ErrorMonitor_MutexLock();
-            else pLoggerMutex->ErrorMonitor_MutexUnlock();
+        s    = (*it).first;
+        info = (*it).second;
+
+        if (difftime(now, info.tm) >= ErrMonitor.m_reset_error_timeout)
+        {
+            it_box = info.msg_box.begin();
+
+            if (domain.count(s))
+            {
+                while(it_box != info.msg_box.end())
+                {
+                    free((*it_box));
+                    it_box = info.msg_box.erase(it_box);
+                }
+
+                domain.erase(s);
+            }
+        }
     }
+
+    std::cout << "Domain " << domain.size() << endl;
 }

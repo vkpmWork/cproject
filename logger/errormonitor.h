@@ -20,13 +20,12 @@ typedef map<string, TDomInfo> map_domain;
 class TErrorMonitor
 {
 
-//signals:
-//    void     send_email (vmsg_box);
 public:
     explicit TErrorMonitor(int, int, double, double, uint);
     ~TErrorMonitor();
 
     void     onAdd_error(int, char*, char*);
+    void 	 exceeded_reset_timeout();
 private:
 
     struct
@@ -45,14 +44,10 @@ private:
     inline bool counter_overflow(bool, int&);
     inline bool exceeded_email_timeout(time_t, bool);
     inline bool exceeded_email_timeout(TDomInfo&);
-    inline void set_mutex(bool);
 
-//private slots  :
-//        void     exceeded_reset_timeout();
-//public  slots  :
+    inline void send_email(common::vmsg_box);
 };
 
-extern TErrorMonitor *pErrorMonitor;
 extern void create_error_monitor_thread();
 extern pthread_t error_thread;
 

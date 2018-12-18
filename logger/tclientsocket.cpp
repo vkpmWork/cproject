@@ -18,6 +18,8 @@
 #include "mqueue.h"
 #include <netdb.h>
 #include <sys/wait.h>
+#include <pthread.h>
+#include <msgpack.hpp>
 
 //#include <msgpack.hpp>
 
@@ -29,6 +31,115 @@
 tclient_socket  *ptrSocket = NULL;
 //mgueue::tmqueue *pMQ       = NULL;
 
+void *handler_client_thread(void *m_clientfd)
+{
+    ushort ErrorHeadersValue   = 0;
+	int m = *(int*)m_clientfd;
+
+    pid_t m_child = getpid();
+
+    usleep(200*1000);
+
+    std::string str;
+
+     int   sz          = 0;
+     char* buf         = (char*)calloc(50001, sizeof(char));
+     if (buf)
+     {
+             do
+             {
+                     sz = recv(m, buf, 50000, 0);
+
+                     if (sz > 0)
+                     {
+                             str.append(buf, sz);
+                             //std::cout << " Size: " << sz << " Buffer: " << str << endl;
+                     }
+                     else
+                     {
+                             if (errno == EAGAIN) continue;
+                             std::ostringstream message;
+                             message << errno << " " << time(0) << " net_recv(): " << buf << " Received : " << strerror(errno) << std::endl;
+                             logger::write_log(message);
+                     }
+             }
+             while (sz > 0);
+             free(buf);
+     }
+
+    /* Clean up the client socket */
+    shutdown (m, SHUT_RDWR);
+    close(m);
+
+/*
+    std::cout << str.data() << std::endl;    // ["Hello," "World!"]
+
+    // Deserialize the serialized data.
+    msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
+    msgpack::object obj = oh.get();
+
+    // Print the deserialized object to stdout.
+    std::cout << obj << std::endl;
+
+    // Convert the deserialized object to staticaly typed object.
+    std::map<std::string, int> result;
+    obj.convert(result);
+
+    for (std::map<std::string, int>::iterator it = result.begin(); it != result.end(); it++)
+    {
+    	std::cout << (*it).first << " : " << (*it).second << endl;
+    }
+    return NULL;
+*/
+    std::ostringstream ss;
+    ss << m_child << " " << str << endl;
+    wmsg(ss, common::levDebug);
+    std::cout << "Exit(0)" << endl;
+
+
+    TLogMsg SocketMessage(str);
+    ErrorHeadersValue |= SocketMessage.ErrorHeadersValue();
+
+    if ((ErrorHeadersValue & ERROR_HEADER_FORMAT) == 0) pClientMessage->AddMessage(&SocketMessage);
+    if (ErrorHeadersValue)
+    {
+        ss.str("");
+        ss << "SocketRunnable::Message ErrorHeadersValue = " + atos(ErrorHeadersValue);
+        wmsg(ss, common::levWarning);
+    }
+
+	return NULL;
+}
+
+void	create_client_thread(int *m_clientfd)
+{
+	   pthread_t 	  a_thread;
+	   pthread_attr_t thread_attr;
+
+	   std::ostringstream m;
+	   if (pthread_attr_init(&thread_attr) != 0)
+	   {
+		   m.str("Attribute creation failed (create_client_thread(int *m_clientfd))\n");
+		   logger::write_log(m);
+		   return;
+	   }
+
+	    // переводим в отсоединенный режим
+	   if (pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED) != 0)
+	    {
+	    	m.str("Setting detached attribute failed (create_client_thread(int *m_clientfd))\n");
+    	    logger::write_log(m);
+	    	return;
+	    }
+
+	    if ( pthread_create(&a_thread, &thread_attr, handler_client_thread, (void*)m_clientfd) != 0) std::cout << "In  : Thread creation failed (create_thread_connect ( int *m_clientfd))\n";
+
+	    (void)pthread_attr_destroy(&thread_attr);
+
+
+}
+
+/* ------------------------------------------------------- */
 void sighandler(int sig)
 {
 
@@ -88,13 +199,23 @@ bool retransmit(int m_socket, char *m_str, int m_len, pid_t m_pid)
   }
   return fl_ok;
 }
+tclient_socket::tclient_socket(char *m_host, int m_port, int m_retry_interval)
+				: port(m_port)
+				, sock(-1)
+				, f_connected(false)
+				, error(false)
+				, retry_interval(m_retry_interval)
 
-tclient_socket::tclient_socket(char *m_host, int m_port, int m_TO)
+{
+	host = strdup(m_host);
+}
+
+tclient_socket::tclient_socket(char *m_host, int m_port)
 				: port(m_port)
 				, sock(-1)
 				, f_connected(false)
                 , error(false)
-                , transmit_timeout(m_TO)
+				, retry_interval(0)
 {
 /*	msgpack::type::tuple<int, bool, std::string> src(1, true, "example");
 
@@ -129,8 +250,8 @@ tclient_socket::tclient_socket(char *m_host, int m_port, int m_TO)
 */
 
 //++++++++++++++++++++++++++++++++++++++++
-	    //++++++++++++++++++++++++++++++++++++++++
-	    //++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++
 	    std::ostringstream msg;
 
         sock_pid = getpid();
@@ -244,27 +365,27 @@ bool  tclient_socket::do_accept()
 
                          flags = fcntl(clientfd, F_GETFL, 0);
                          if (fcntl(clientfd, F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC) == -1)
-                           {
+                         {
                                ss.str("");
                                ss << "fcntl(clientfd, F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC): "<< strerror(errno) << endl;
                                wmsg(ss, common::levError);
                                continue;
-                           }
+                         }
 
 
-/*                                 char host[NI_MAXHOST]; // to store resulting string for ip
-                                 memset(host, 0, NI_MAXHOST);
-                                 if (getnameinfo((sockaddr*)&client, client_len,
+/*                       char host[NI_MAXHOST]; // to store resulting string for ip
+                         memset(host, 0, NI_MAXHOST);
+                         if (getnameinfo((sockaddr*)&client, client_len,
                                                    host, NI_MAXHOST, // to try to get domain name don't put NI_NUMERICHOST flag
                                                    NULL, 0,          // use char serv[NI_MAXSERV] if you need port number
                                                    NI_NUMERICHOST    // | NI_NUMERICSERV
-                                                ) == 0)
-                                 {
-                                     //printf("Connected to: %s\n", host);
-                                 }
+                            ) == 0)
+                         {
+                                   //printf("Connected to: %s\n", host);
+                         }
 */
 
-                         handler_proc::create_client_thread(&clientfd);
+                         create_client_thread(&clientfd);
                          //handler_proc::handler_client_thread(&clientfd);
          }
 

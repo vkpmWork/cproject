@@ -112,8 +112,9 @@ void tconfig::ReadIni()
 	    m_reset_error_timeout       = reader.GetInteger(KEY_LOCAL_STORE, "reset_error_timeout",     DEFAULT_RESET_ERROR_TIMEOUT);
 	    m_email_error_timeout       = reader.GetInteger(KEY_LOCAL_STORE, "email_error_timeout",     DEFAULT_EMAIL_ERROR_TIMEOUT);
 
-//	    m_emails_error  = emails_error(settings.value("emails_error", "").toString().toStdString());
-//	    if (m_emails_error.empty() || m_emails_error.size()==0)   m_registered_error_level = m_error_counter = 0;
+	    std:string sss = reader.Get(KEY_LOCAL_STORE, "emails_error", "");
+	    m_emails_error  = emails_error(sss);
+	    if (m_emails_error.empty() || m_emails_error.size()==0)   m_registered_error_level = m_error_counter = 0;
 
 	    m_email_volume  = reader.GetInteger(KEY_LOCAL_STORE, "error_volume", DEFAULT_EMAIL_ERROR_VOLUME);
 	    if (m_email_volume > DEFAULT_EMAIL_ERROR_VOLUME) m_email_volume = DEFAULT_EMAIL_ERROR_VOLUME;
@@ -360,7 +361,7 @@ m_emails tconfig::emails_error(string m_mails)
                 else
                 {
                     sprintf(ss, "Error email address format: %s\n", s.c_str());
-//                    if (pInternalLog) pInternalLog->LOG_OPER(ss);
+                    std::cout << ss;
                 }
 
             }

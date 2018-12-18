@@ -11,7 +11,6 @@
 #include <string>
 #include "loggermutex.h"
 #include "log.h"
-#include "handler_proc.h"
 
 #define SOCKET_BLOCK    0
 #define SOCKET_NONBLOCK 1
@@ -21,15 +20,16 @@ class tclient_socket
 
 public :
         /* server */
-        tclient_socket(char *m_host, int m_port, int m_TO);
+    tclient_socket(char *m_host, int m_port);
 	bool  do_accept();
 	void  do_close();
-        std::string  net_recv_string(int m_socket, int &m_res);
+    std::string  net_recv_string(int m_socket, int &m_res);
 
 	/* client */
-        bool    net_connect();
-        inline  char *get_host()                        { return host;            }
-        inline  int  get_port()                         { return port;            }
+    tclient_socket(char *m_host, int m_port, int m_retry_interval);
+    bool    net_connect();
+    inline  char *get_host()                        { return host;            }
+    inline  int  get_port()                         { return port;            }
 
         /* common */
 	virtual ~tclient_socket();
@@ -55,7 +55,7 @@ private:
 	bool  error;
 	int   sock_pid;
 	void  set_error()                               { error = true; };
-    int  transmit_timeout;
+    int   retry_interval;
 
 
 

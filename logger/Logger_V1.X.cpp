@@ -13,6 +13,7 @@
 #include "tclientsocket.h"
 #include "clientmessage.h"
 #include "errormonitor.h"
+#include "remotethread.h"
 #include <signal.h>
 #include <typeinfo>
 
@@ -168,11 +169,14 @@ int 	main(int argc, char* argv[])
 
   InitLoggerMutex();
 
-  if (CurrentStoreType == Logger_namespace::LOCAL_STORE)/* && pConfig->IsNeedToCheckErrors())*/ create_error_monitor_thread();
+  if ((CurrentStoreType == Logger_namespace::LOCAL_STORE) && pConfig->IsNeedToCheckErrors()) create_error_monitor_thread();
+  else
+	  	  if (CurrentStoreType == Logger_namespace::REMOTE_STORE) create_remote_thread();
+
 
 //  logger_thread = pthread_self();
-  handler_proc::create_message_handler_thread();
-  pClientMessage = new TClientMessage(handler_proc::message_handler_thread, error_thread, CurrentStoreType = pConfig->CurrentStoreType,
+  create_message_handler_thread();
+  pClientMessage = new TClientMessage(message_thread, error_thread, CurrentStoreType = pConfig->CurrentStoreType,
 		  	  	  	  	  	  	      pConfig->max_list_size(), pConfig->CheckPeriod(), pConfig->IsNeedToCheckErrors() ?  pConfig->registered_error_level() : 0);
 
   if (!pClientMessage)
@@ -183,9 +187,8 @@ int 	main(int argc, char* argv[])
       return EXIT_FAILURE;
   }
 
-  if (CurrentStoreType == Logger_namespace::REMOTE_STORE);
 
-  tclient_socket *Socket = new tclient_socket((char*)pConfig->LocalAddress().c_str(), pConfig->LocalPort(), 300);
+  tclient_socket *Socket = new tclient_socket((char*)pConfig->LocalAddress().c_str(), pConfig->LocalPort());
   if (Socket)
   {
 	  if(Socket->get_error() == 0)
@@ -346,9 +349,14 @@ void    FreeMemory()
   }
 
   std::cout << "Signal pthread_cancel" << endl;
-  pthread_cancel(handler_proc::message_handler_thread);
+  pthread_cancel(message_thread);
   std::cout << "Signal pthread_join" << endl;
-  pthread_join(handler_proc::message_handler_thread, NULL);
+  pthread_join(message_thread, NULL);
+
+  std::cout << "Signal error_thread cancel" << endl;
+  pthread_cancel(error_thread);
+  std::cout << "Signal error_thread join" << endl;
+  pthread_join(error_thread, NULL);
 
   unlink(pidfile_name);
   free(pidfile_name);

@@ -5,6 +5,7 @@
 #include "tlogmsg.h"
 #include <vector>
 #include <map>
+#include "loggermutex.h"
 
 typedef vector<string> Vmessage; /* список сообщений от клиентов */
 typedef map<string, Vmessage> Mmessagelist; /* domain/filename + сообщение */
@@ -54,6 +55,7 @@ private:
     inline    void  OnDeleteMessage(/*std::string*/);
     inline 	  void  OnTransmitError(uint, std::string, std::string);
 };
+extern pthread_t 	  message_thread;
 extern TClientMessage *pClientMessage;
-extern pthread_t logger_thread;
+void   create_message_handler_thread();
 #endif // CLIENTMESSAGE_H
