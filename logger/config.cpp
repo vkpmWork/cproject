@@ -36,6 +36,8 @@ const int         DEFAULT_LOGSIZE = 10;
 #define DEFAULT_RESET_ERROR_TIMEOUT       10
 #define DEFAULT_EMAIL_ERROR_TIMEOUT       30
 #define DEFAULT_EMAIL_ERROR_VOLUME        20
+#define DEFAULT_REMOTE_SIZE               100
+
 
 
 #define REGEX_MASK  "[.\\-_a-z0-9]+@([a-z0-9][\\-a-z0-9]+\\.)+[a-z]{2,6}"
@@ -112,7 +114,7 @@ void tconfig::ReadIni()
 	    m_reset_error_timeout       = reader.GetInteger(KEY_LOCAL_STORE, "reset_error_timeout",     DEFAULT_RESET_ERROR_TIMEOUT);
 	    m_email_error_timeout       = reader.GetInteger(KEY_LOCAL_STORE, "email_error_timeout",     DEFAULT_EMAIL_ERROR_TIMEOUT);
 
-	    std:string sss = reader.Get(KEY_LOCAL_STORE, "emails_error", "");
+	    string sss = reader.Get(KEY_LOCAL_STORE, "emails_error", "");
 	    m_emails_error  = emails_error(sss);
 	    if (m_emails_error.empty() || m_emails_error.size()==0)   m_registered_error_level = m_error_counter = 0;
 
@@ -134,6 +136,7 @@ void tconfig::ReadIni()
 				ls.Address          = reader.Get(KEY_REMOTE_STORE,"address",        "");
 				m_retry_interval    = reader.GetInteger(KEY_REMOTE_STORE, "retry_interval", DEFAULT_RETRY_INTERVAL);
 				m_max_local_size    = reader.GetInteger(KEY_REMOTE_STORE, "max_local_size", DEFAULT_LOCAL_SIZE);
+				m_size_in_memo      = reader.GetInteger(KEY_REMOTE_STORE, "size_in_memo",   DEFAULT_REMOTE_SIZE);
 
 				if (ls.port && ls.Address.empty() == false) Category_Store[KEY_REMOTE_STORE] = ls;
 				else
@@ -260,7 +263,7 @@ ulong   tconfig::max_list_size()
 
 uint    tconfig::retry_interval()
 {
-    return m_retry_interval*1000;
+    return m_retry_interval;
 }
 
 size_t tconfig::max_size()

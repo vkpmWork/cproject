@@ -23,11 +23,11 @@ void    TLogMsg::ParseString(string Str)
     char *str = strdup(Str.data());
     if (str)
     {
-        std::cout << "STR: " << str << endl;
+        //std::cout << "STR: " << str << endl;
 
         m_domain   = GetHeader(str, HEADER_DOMAIN);
         m_cmd      = GetHeader(str, HEADER_COMMAND);
-        std::cout << "CMD: " << m_cmd << endl;
+        //std::cout << "CMD: " << m_cmd << endl;
         m_filename = GetHeader(str, HEADER_FILENAME);
         m_msg      = GetHeader(str, HEADER_MESSAGE);
         m_error    = GetHeader(str, HEADER_ERROR);

@@ -75,8 +75,11 @@ filethread::filethread()
 	Path           = pConfig->Folder();
 
 	fl_changeowner = false;
+	Mode_Dir       = pConfig->mode_dir_local();
+	Mode_File      = pConfig->mode_file_local();
     Default_base_fileName = DEFAULT_BASE_FILE_NAME;
 	Default_base_filePath = Path+Default_base_fileName;
+	SomeError             = !MakeDirectory(Path, Mode_Dir, Owner_user, Owner_group);
 }
 
 filethread :: ~filethread()
@@ -122,7 +125,6 @@ void filethread :: RunWork()
 //	typedef vector<string> Vmessage; /* список сообщений от клиентов */
 //	typedef map<string, Vmessage> Mmessagelist; /* domain/filename + сообщение */
 
-
 	Vmessage    msg;
 	std::string m_file;
 	std::string m_str;
@@ -147,57 +149,24 @@ void filethread :: RunWork()
 
     }
 }
-/*
-bool filethread :: RunLocal(v_messagelist m_list, v_messagelist::iterator it, v_messagelist::iterator it_last)
+
+bool filethread :: RunLocal(Vmessage m_list)
 {
-        bool return_value = false;
+    	if (pLoggerMutex) pLoggerMutex->Write_MutexLock();
 
-        string s, m;
-        s.clear();
-        m.clear();
-        ulong sz = 0;
-
-        char *ch = (char*)malloc(2);
-
-        while(it != it_last)
+    	int fd  = OpenFileForAppend(Default_base_filePath);
+        if (fd != -1)
         {
-
-            m = *it;
-            memset(ch, 0, 2);
-
-            sz = m.size() + 1 // MARKER_END ;
-
-            memmove(ch, &sz, sizeof(ushort));
-            s.append(ch, 2);
-            s.append(m);
-            s.append(MARKER_END);
-
-            sz = s.size();
-            it++;
-
-            if (sz >= MAX_MESSAGE_SIZE || (it == it_last))
-            {
-
-                int fd = OpenFileForAppend(Default_base_filePath);
-                if (fd > -1)
-                {
-
-                    WriteFile(fd, s);
-                    FileClose(fd);
-                    //FsyncFile(fd);
-                    s.clear();
-                    if (!return_value) return_value = true;
-                }
-
-            }
+        	for (Vmessage::iterator it = m_list.begin(); it != m_list.end(); it++)
+        	{
+                WriteFile(fd, *it);
+        	}
+        	FileClose(fd);
         }
 
-        free(ch);
-        m_list.clear();
-
-        return return_value;
+        if (pLoggerMutex) pLoggerMutex->Write_MutexUnlock();
+        return true;
 }
-*/
 
 void filethread :: Write(std::string m_f, std::string s)
 {
@@ -455,7 +424,9 @@ int filethread ::FileOpen(string fname, int flag)
 
     int pFile = -1;
 
-    if (FileExists(fname)) pFile = tabstractfile::FileOpen(fname.c_str(), flag);
+    if (FileExists(fname))
+    	pFile = tabstractfile::FileOpen(fname.c_str(), flag);
+
     return pFile;
 }
 
@@ -539,63 +510,18 @@ Vmessage filethread ::GetLocalMsgList()
 {
 
     Vmessage m;
+    std::string line;
 
-     if (FileExists(Default_base_filePath))
-     {
-            int pFile = -1;
+    std::ifstream in(Default_base_filePath.c_str()); // окрываем файл для чтения
+    if (in.is_open())
+    {
+            while (getline(in, line))
+            	m.push_back(line);
+    }
+    in.close();     // закрываем файл
 
-            if (pLoggerMutex) pLoggerMutex->RemoteRunnable_MutexLock();
-
-            pFile = FileOpen(Default_base_filePath, ReadFileMode());
-
-            if (pLoggerMutex) pLoggerMutex->RemoteRunnable_MutexUnlock();
-
-            if (pFile > -1)
-            {
-                char sz_short = 4096;//MSG_SIZE;
-                size_t flength   = FileSize(pFile);
-                string  str   = "";
-                if (flength> 0)
-                {
-                    char *buf = (char*)malloc(flength+1);
-                    memset(buf, 0, flength);
-
-                    if (buf)
-                    {
-                        flength = read(pFile, buf, flength);
-
-                        if (flength > (size_t)sz_short)
-                        {
-                            int    pos   = 0;
-                            ushort sz    = 0;
-
-                            while ((size_t)pos < flength)
-                            {
-                                memcpy(&sz, buf + pos, sz_short);
-
-                                pos += sz_short;
-                                if (sz)
-                                {
-                                    str.assign(buf + pos, (sz-1));
-                                    pos += sz;
-                                    if (str.size()) m.push_back(str);
-                                    //str.clear();
-                                }
-
-                            }
-                        }
-                        free(buf);
-                    }
-                }
-                pFile = FileClose(pFile);
-            }
-     }
-     return m;
+    return m;
 }
-
-/* --------------------------------------------------- */
-/* --------------------------------------------------- */
-/* --------------------------------------------------- */
 
 tlocalfile::tlocalfile(string path, tabstractfile *)
     :  tabstractfile()

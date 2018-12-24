@@ -41,7 +41,6 @@ int tabstractfile ::FileOpen(string fname, int flag)
 {
 
     int pFile = open(fname.c_str(), flag, S_IWUSR | S_IWGRP); 
-
     if (pFile == -1)
     {
 		 std::ostringstream m;
@@ -102,7 +101,6 @@ int tabstractfile :: FileDelete(string f)
 
 void tabstractfile ::WriteFile(int pFile, string s)
 {
-    std::cout << "WriteFile: " << s << endl;
 	if (pFile < 0) return;
 
     size_t sz  = s.size();

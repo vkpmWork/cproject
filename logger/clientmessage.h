@@ -19,7 +19,8 @@ class TClientMessage
 public:
     Mmessagelist    message_list;
 
-    TClientMessage(pthread_t m_msg_thread, pthread_t m_error_thread,Logger_namespace::tcStore store, ulong, uint, uint);
+    TClientMessage(pthread_t m_msg_thread, pthread_t m_error_thread, pthread_t m_remote_thread,
+    			   Logger_namespace::tcStore store, ulong, uint, uint);
     void        AddMessage(TLogMsg *m);
     inline      msgevent::tcEvent Cmd()
                 { return m_cmd; }
@@ -33,6 +34,7 @@ public:
     ~TClientMessage();
 private:
     pthread_t 	    msg_thread,
+    				remote_thread,
     				error_thread;
 
 
@@ -55,7 +57,9 @@ private:
     inline    void  OnDeleteMessage(/*std::string*/);
     inline 	  void  OnTransmitError(uint, std::string, std::string);
 };
-extern pthread_t 	  message_thread;
+extern pthread_t 	message_thread;
+extern pthread_t 	remote_thread;
+
 extern TClientMessage *pClientMessage;
 void   create_message_handler_thread();
 #endif // CLIENTMESSAGE_H

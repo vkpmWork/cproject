@@ -46,6 +46,7 @@ public :
     bool          empty_msg_list();
     Vmessage      GetLocalMsgList();
     void          RunWork();
+    bool 		  RunLocal(Vmessage m_list);
     void   		  TryToDeleteFile();
 
 private:

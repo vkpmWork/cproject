@@ -20,6 +20,8 @@
 #include <sys/wait.h>
 #include <pthread.h>
 #include <msgpack.hpp>
+#include "clientmessage.h"
+#include <signal.h>
 
 //#include <msgpack.hpp>
 
@@ -94,8 +96,6 @@ void *handler_client_thread(void *m_clientfd)
     std::ostringstream ss;
     ss << m_child << " " << str << endl;
     wmsg(ss, common::levDebug);
-    std::cout << "Exit(0)" << endl;
-
 
     TLogMsg SocketMessage(str);
     ErrorHeadersValue |= SocketMessage.ErrorHeadersValue();
@@ -514,64 +514,28 @@ bool tclient_socket::bsend(int m_socket, char *buf, int length)
 
 bool tclient_socket::net_send(const char *buf, int length)
 {
-    if (!f_connected) return false;
+      if (!f_connected) return false;
 
-    int total = MAXLEN/*FD_SETSIZE*/;
-    int n     = 0;
-    int counter = 0;
-    int m_errno = 0;
+      int total = 0, m_out = 0;
+      while(total < length)
+      {
+                      m_out = send(sock, buf+total, length-total, MSG_NOSIGNAL);
+                      if(m_out == -1)
+                      {
+                              if (errno == EAGAIN)
+                              {   usleep(200);
+                                  continue;
+                              }
 
-    long t = common::mtime();
+                              std::ostringstream s;
+                              s << errno << " " << time(0) <<  " : " << "net_send(const char *buf, int length) Transmit error : " << strerror(errno) << std::endl;
+                              winfo(s);
+                              break;
+                      }
+                      total += m_out;
+      }
 
-    while(length >= total)
-    {
-    	n = send(sock, buf+counter, total, 0);
-        if(n == -1)
-        {
-        	std::ostringstream message;
-			message << errno << " " << time(0) <<  " : " << "net_send(const char *buf, int length) Transmit error while(length >= total): " << strerror(m_errno = errno) << std::endl;
-   	        logger::write_log(message);
-
-        	break;
-        }
-
-        length  -= n;
-    	counter += n;
-    }
-
-	total = 0;
-	while(n != -1 && total < length)
-	{
-			n = send(sock, buf+ counter + total, length-total, 0);
-			if(n == -1)
-			{
-						std::ostringstream message;
-	        			message << errno << " " << time(0) <<  " : " << "net_send(const char *buf, int length) Transmit error while(... total < length): " << strerror(m_errno = errno) << std::endl;
-						logger::write_log(message);
-						break;
-			}
-
-			total += n;
-	}
-
-   if(n == -1/* && m_errno != EAGAIN*/)
-   {
-	   std::ostringstream message;
-	   message.str("net_close()\n");
-	   logger::write_info (message);
-    	net_close();
-   }
-
-   t = common::mtime() - t;
-
-   if (t > 10 || n == -1)
-   {
-	   std::ostringstream message;
-	   message << "0 " << time(0) <<  " : " << "Timeout on Send : " << t <<  " milliseconds" << std::endl;
-	   logger::write_log(message);
-   }
-
-    return (n==-1 ? false : true);
+      return (m_out ==-1 ? false : true);
 }
 
 bool  tclient_socket::net_recv(char *s)
@@ -639,6 +603,7 @@ std::string  tclient_socket::receive(int &m_size)
         std::string str;
         char* buf = (char*)calloc(MAXLEN, 1);
         m_size = recv(sock, buf, MAXLEN, 0);
+
 
         if (m_size) str.append(buf, m_size);
         free(buf);

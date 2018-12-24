@@ -5,7 +5,8 @@
 #include <pthread.h>
 
 /*---------------------------------------------*/
-pthread_t 	  message_thread;
+pthread_t 	  	message_thread;
+pthread_t		remote_thread;
 
 void Msg_to_local_store (Mmessagelist ml, msgevent::tcEvent ev_code)
 {
@@ -72,8 +73,9 @@ void *handler_message_thread(void*)
 	  pClientMessage->ClearMessageList();
 	  if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexUnlock();
 
-	  //pConfig->CurrentStoreType == Logger_namespace::LOCAL_STORE ? Msg_to_local_store (mml, (msgevent::tcEvent)svalue.sival_int) : Msg_to_remote_store(mml);
-	  Msg_to_local_store (mml, (msgevent::tcEvent)svalue.sival_int);
+	  if (svalue.sival_int == 0xFF) break;
+	  else Msg_to_local_store (mml, (msgevent::tcEvent)svalue.sival_int);
+
 	}
     std::cout << "4\n";
     return NULL;
@@ -112,9 +114,11 @@ void	create_message_handler_thread()
 TClientMessage *pClientMessage = NULL;
 //pthread_t logger_thread;
 
-TClientMessage::TClientMessage(pthread_t m_msg_thread, pthread_t m_error_thread, Logger_namespace::tcStore store , ulong maxStoreListSize, uint checkPeriod, uint m_error_level)
+TClientMessage::TClientMessage(pthread_t m_msg_thread, pthread_t m_error_thread, pthread_t m_remote_thread,
+						       Logger_namespace::tcStore store , ulong maxStoreListSize, uint checkPeriod, uint m_error_level)
   	  :   msg_thread  (m_msg_thread)
 		, error_thread(m_error_thread)
+		, remote_thread(m_remote_thread)
 		, MaxStoreListSize(maxStoreListSize)
 		, CategoryStore(store)
 		, m_cmd(msgevent::evEmpty)
@@ -169,9 +173,9 @@ void    TClientMessage::AddMessage(TLogMsg *m)
         case msgevent::evDelete  : if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexLock();
         						   if (ev == msgevent::evMsg)
         						   {
-        							   message_list[m->GlobalFileName()].push_back(CategoryStore == Logger_namespace::LOCAL_STORE ? m->Message() : m->msg());
+        							   message_list[m->GlobalFileName()].push_back(CategoryStore == Logger_namespace::LOCAL_STORE ? m->msg() : m->Message());
         							   OnReadyTransmitMessage();
-        							   if (0 < ErrorLevel && (uint)m->error() > ErrorLevel)
+        							   if (CategoryStore == Logger_namespace::LOCAL_STORE && 0 < ErrorLevel && (uint)m->error() > ErrorLevel)
         								   	   OnTransmitError(m->error(), m->domain(), m->Message());
         						   }
         						   else

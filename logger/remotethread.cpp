@@ -1,15 +1,19 @@
 #include "tclientsocket.h"
 #include "remotethread.h"
-#include "clientmessage.h"
 #include "config.h"
 #include "file.h"
 #include "log.h"
 #include <pthread.h>
 
 #define ATTEMPT_COUNTER 2
+
 //----------------------------------------
 void* handler_remote_thread(void*)
 {
+	Mmessagelist mml;
+    RemoteThread *pWrk_Remote = new RemoteThread(pConfig->RemoteAddress(), pConfig->RemotePort(), pConfig->Folder(), pConfig->remote_size_in_memo());
+    if (!pWrk_Remote) return NULL;
+
 	sigset_t mask, oldmask;
 	sigemptyset(&mask);
 	sigaddset(&mask, SIGUSR2);
@@ -22,36 +26,54 @@ void* handler_remote_thread(void*)
 
 	sigprocmask(SIG_BLOCK, &mask, &oldmask);
 
+	/* Задаём время ожидания X с */
+	struct timespec tv;
+	tv.tv_sec  = pConfig->retry_interval();
+	tv.tv_nsec = 0;
+
 	/*
-	 * Ждём доставки сигнала. Мы ожидаем 2 сигнала,
+	 * Ждём доставки сигнала. Мы ожидаем SIGUSR2,
 	 * SIGRTMIN и SIGRTMIN+1. Цикл завершится, когда
 	 * будут приняты оба сигнала
 	 */
 
+	siginfo_t siginfo;
     int 	  recv_sig;
+
+    if (!pWrk_Remote->empty_msg_list()) raise(SIGUSR2);
+
     while(true)
 	{
-	   sigwait(&mask, &recv_sig);
+    	if ((recv_sig = sigtimedwait(&mask, &siginfo, &tv)) == -1)
+    	{
+    		    if (errno != EAGAIN)
+    		    {
+    		    	perror("sigtimedwait");
+    		    	break;
+    		    }
+    	}
 
-       if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexLock();
-	   Mmessagelist mml =  pClientMessage->message_list;
+  	   printf("Remote signal %d received\n",  recv_sig);
+
+  	   if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexLock();
+	   mml =  pClientMessage->message_list;
 	   pClientMessage->ClearMessageList();
-	   if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexUnlock();
+       if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexUnlock();
 
-	   RemoteThread *pWrk_Remote = new RemoteThread(mml, pConfig->RemoteAddress(), pConfig->RemotePort(), pConfig->Folder());
-	   if (pWrk_Remote)
-	   {
-		   pWrk_Remote->RunWork();
-		   delete pWrk_Remote; pWrk_Remote = NULL;
-	   }
+	   if (pWrk_Remote) pWrk_Remote->RunWork(mml);
 
-
-      continue;
+       if (siginfo._sifields._rt.si_sigval.sival_int == 0xFF) break;
     }
 
-
+    if (pWrk_Remote)
+    {   pWrk_Remote->SaveRemoteFile();
+    	delete pWrk_Remote; pWrk_Remote = NULL;
+    }
+    std::cout << "Remote Exit" << endl;
+    sleep(2);
     return NULL;
 }
+
 void create_remote_thread()
 {
 	   pthread_attr_t thread_attr;
@@ -81,116 +103,105 @@ void create_remote_thread()
 }
 //----------------------------------------
 
-RemoteThread::RemoteThread(Mmessagelist m_mml, string m_address, ulong m_port, string mfolder)
-	: append_list(m_mml)
-	, m_Address(m_address)
+RemoteThread::RemoteThread(string m_address, ulong m_port, string mfolder, size_t m_size)
+	: m_Address(m_address)
 	, m_Port(m_port)
 	, m_folder(mfolder)
   	, fl_local_exists(false)
-    , local_counter(0)
+    , m_size_in_memo(m_size)
 
 {
      pWrk_file = new filethread();
-     if (pWrk_file)
-     {
-       	 	    msg_list = pWrk_file->GetLocalMsgList();
-       	 	    Vmessage    msg;
-    	    	for (Mmessagelist::iterator it = append_list.begin(); it != append_list.end(); it++ )
-    	    	{
+     if (pWrk_file) msg_list = pWrk_file->GetLocalMsgList();
 
-    	    			msg    = (*it).second;
-    	    			msg_list.insert(msg_list.end(), msg.begin(), msg.end());
-    	    	}
-     }
+     fl_local_exists = (bool)msg_list.size();
+     cout << "msg_list = " << msg_list.size() << std::endl;
+}
+
+void RemoteThread ::append(Mmessagelist m_list)
+{
+	if (m_list.empty()) return;
+
+	Vmessage    msg;
+	int 		sz = 0;
+	for (Mmessagelist::iterator it = m_list.begin(); it != m_list.end(); it++ )
+	{
+
+			msg = (*it).second;
+        	sz  = msg_list.size();
+			if (sz > (int)m_size_in_memo)
+			{
+				sz = (sz*3)/4;
+				msg_list.erase(msg_list.begin(), msg_list.begin() + sz);
+			}
+			msg_list.insert(msg_list.end(), msg.begin(), msg.end());
+	}
 
 }
 
-void RemoteThread :: RunWork()
+void RemoteThread::RunWork(Mmessagelist m_list)
 {
-    if (!msg_list.size()) return;
-
-    int msg_counter = msg_list.size();
-    int count       = 0;               /* кол-во сообщений, передаваемых в одной строке*/
-
-    string ss    = PrepareForSend(msg_list, count /* индекс в очереди */, msg_counter); /* строка для передачи на удаленный сервер */
+	append(m_list);
+	if (!msg_list.size()) return;
 
     bool   is_ok = false;
-    int    m_attempt_counter = 0, m_fact_counter = 0;
-
 
     tclient_socket *Socket  = new tclient_socket((char*)pConfig->RemoteAddress().c_str(), pConfig->RemotePort(), pConfig->retry_interval());
     if (!Socket) return;
 
     if (Socket->net_connect())
     {
-        is_ok = true;
-        while(is_ok && ss.size())
-        {
-            is_ok  = SendToServer(socket, ss);
-            if (/*is_ok && */ socket->state() == QAbstractSocket::ConnectedState && socket->waitForBytesWritten(WAIT_EVENT)) // *2
-            {
-                if (socket->waitForReadyRead(WAIT_EVENT)) socket->readAll();
-                else
-                {
 
-                    is_ok = false;
-                    pInternalLog->LOG_OPER("RemoteThread :: SendToServer(string str) Нет квитанции от Logger-сервера!");
-                    pInternalLog->APPEND_LOG(socket->errorString().toStdString());
-                }
-            }
-            else
-            {   is_ok = false;
-                pInternalLog->LOG_OPER("RemoteThread :: waitForBytesWritten == false");
-                pInternalLog->APPEND_LOG(socket->errorString().toStdString());
-            }
+    	char *buf = 0;
+    	int   len = 0;
+    	int   cnt = 0;
+    	for (Vmessage::iterator it = msg_list.begin(); it != msg_list.end(); it++)
+    	{
+    		len = (*it).length();
 
-            if (is_ok)
-            {
-                m_fact_counter = count;
-                ss = PrepareForSend(msg_list, count, msg_counter);
-            }
-            else
-                if (++m_attempt_counter >= ATTEMPT_COUNTER) break;
+    		buf = (char*)calloc(len, sizeof(char));
+    		if (buf)
+    		{
+    	    	memmove(buf, (*it).c_str(), len);
+    			is_ok = Socket->net_send(buf, len);
+    			free(buf);
+    			sleep(1);
+    			cnt++;
 
-        }
+    		//	if (!is_ok) break;
+    		}
+    	}
+    	Socket->net_close();
+    	cout << "Cnt = " << cnt << endl;
     }
-
-    socket->close();
-    socket->disconnectFromHost();
-    delete socket;
-    socket = NULL;
+    delete Socket;
+    Socket = NULL;
 
     if (is_ok)
     {
-        SetLock(msg_lock);
-           msg_list.clear();
-           local_counter = 0;
-        SetUnlock(msg_lock);
-
-        emit finished();
-        if (fl_local_exists && pWrk_file) pWrk_file->UnlinkLocalFile();
+         msg_list.clear();
+         if (fl_local_exists && pWrk_file) pWrk_file->UnlinkLocalFile();
     }
     else
     {
-         int  v = local_counter + m_fact_counter;
+    	SaveRemoteFile();
+        msg_list.clear();
+        //bool fl_local_exists = pWrk_file->RunLocal(msg_list);
 
-         if ((v < msg_counter) && pWrk_file)
-         {
-                        SetLock(msg_lock);
-                        fl_local_exists = pWrk_file->RunLocal(msg_list, msg_list.begin() + v, msg_list.end());
-                        SetUnlock(msg_lock);
-                        local_counter = msg_counter;
-         }
-         QTimer::singleShot(300, this, SLOT(RunWork()));
     }
 }
 
 
+void RemoteThread::SaveRemoteFile()
+{
+	if (pWrk_file)
+	{
+		pWrk_file->RunLocal(msg_list);
+	}
+}
 
 RemoteThread :: ~RemoteThread()
 {
-    pthread_mutex_destroy(&append_lock);
-    pthread_mutex_destroy(&msg_lock);
 
     if (pWrk_file)
     {
@@ -198,94 +209,4 @@ RemoteThread :: ~RemoteThread()
         pWrk_file = NULL;
     }
 
-}
-
-string RemoteThread :: PrepareForSend(const Vmessage &msg, int &count /* индекс в очереди */, int msg_size /* размер очереди */)
-{
-    if (!msg_size) return "";
-
-    string str,  Str = "";
-    int    szcounter = 0;
-
-    char    ch[sizeof(ushort)];
-    ushort  sz;
-
-    while(count < msg_size && szcounter < 100/*MAX_MESSAGE_SIZE*/)
-    {
-        str = msg[count++];
-
-        sz  = str.size();
-        memcpy(ch, &sz, sizeof(ushort));
-
-        Str.append(ch, 2);
-        Str.append(str);
-        szcounter += (sz+2);
-    }
-    return Str;
-}
-
-bool RemoteThread :: SendToServer(int socket, string str)
-{
-    bool   rez_value = false;
-    ushort sz        = str.size();
-
-    char *buf = (char*)malloc(sz);
-    if (buf && sz)
-    {
-        memmove(buf, str.c_str(), sz);
-        rez_value = SendToServer(socket, buf, sz);
-        free(buf);
-    }
-    return rez_value;
-}
-
-bool RemoteThread :: SendToServer(int socket, char *str, size_t sz)
-{
-    bool ok   = false;
-    try
-    {
-        size_t v = socket->write(str, sz);
-        ok = (sz == v);
-        if (!ok)
-        {
-            pInternalLog->LOG_OPER("RemoteThread :: SendToServer - Transmit to Server didn't compleate");
-        }
-    }
-    catch(...) { }
-
-    return ok;
-}
-
-
-void RemoteThread::SetLock(pthread_mutex_t m_mutex)
-{
-    pthread_mutex_lock(&m_mutex);
-}
-
-void RemoteThread::SetUnlock(pthread_mutex_t m_mutex)
-{
-    pthread_mutex_unlock(&m_mutex);
-}
-
-void RemoteThread :: onMsg_list_append(Mmessagelist m_list)
-{
-    SetLock(append_lock);
-    append_list.insert(append_list.end(), m_list.begin(), m_list.end());
-    SetUnlock(append_lock);
-}
-
-bool RemoteThread ::empty_msg_list()
-{
-    bool fl = true;
-    SetLock(msg_lock);
-    fl = msg_list.empty();
-    SetUnlock(msg_lock);
-
-    return fl;
-}
-
-Vmessage RemoteThread::GetLocalMsgList()
-{
-	Vmessage m;
-    return m;
 }

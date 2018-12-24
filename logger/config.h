@@ -96,6 +96,8 @@ public:
     bool	 isdaemon()						{return is_daemon;		}
     std::string get_header()				{return m_header;		}
 
+    int		 remote_size_in_memo()		    {return m_size_in_memo; }
+
 private:
 	    char* cfg_file;
 	    int   cfg_error;
@@ -134,6 +136,7 @@ private:
 	    std::string m_header;
 	    bool        is_daemon;
 
+	    int			m_size_in_memo;
 	void				ReadIni();
 
     LoggerSettings		GetStore(string);

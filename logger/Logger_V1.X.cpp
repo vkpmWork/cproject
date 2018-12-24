@@ -176,8 +176,8 @@ int 	main(int argc, char* argv[])
 
 //  logger_thread = pthread_self();
   create_message_handler_thread();
-  pClientMessage = new TClientMessage(message_thread, error_thread, CurrentStoreType = pConfig->CurrentStoreType,
-		  	  	  	  	  	  	      pConfig->max_list_size(), pConfig->CheckPeriod(), pConfig->IsNeedToCheckErrors() ?  pConfig->registered_error_level() : 0);
+  pClientMessage = new TClientMessage(message_thread, error_thread, remote_thread,
+		  	  	  	  	  	  	  	  CurrentStoreType = pConfig->CurrentStoreType, pConfig->max_list_size(), pConfig->CheckPeriod(), pConfig->IsNeedToCheckErrors() ?  pConfig->registered_error_level() : 0);
 
   if (!pClientMessage)
   {
@@ -323,7 +323,7 @@ void FatalSigHandler(int sig)
 void Sig_Handler(int sig)
 {
   std::cout << "Signal: " << sig << endl;
-//  if (sig == SIGTERM)
+  if (sig == SIGTERM)
   {
 	  FreeMemory();
   	  exit(EXIT_SUCCESS);
@@ -333,6 +333,17 @@ void Sig_Handler(int sig)
 void    FreeMemory()
 {
   std::cout << "FreeMemory()" << endl;
+
+  union sigval value;
+  value.sival_int = 0xFF;
+  std::cout << "message_thread_cancel" << endl;
+  pthread_sigqueue(message_thread, SIGUSR2, value);
+  pthread_join(message_thread, NULL);
+  std::cout << "message_thread_join" << endl;
+
+  pthread_sigqueue(remote_thread, SIGUSR2, value);
+  pthread_join(remote_thread, NULL);
+
   DeleteLogSystemSetup();	// pConfig
   DeleteLogMutex();			// pLoggerMutex
 
@@ -348,12 +359,10 @@ void    FreeMemory()
 	  pClientMessage = NULL;
   }
 
-  std::cout << "Signal pthread_cancel" << endl;
-  pthread_cancel(message_thread);
-  std::cout << "Signal pthread_join" << endl;
-  pthread_join(message_thread, NULL);
+
 
   std::cout << "Signal error_thread cancel" << endl;
+
   pthread_cancel(error_thread);
   std::cout << "Signal error_thread join" << endl;
   pthread_join(error_thread, NULL);
