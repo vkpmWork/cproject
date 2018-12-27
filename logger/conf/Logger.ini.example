@@ -1,0 +1,98 @@
+[COMMON]
+daemon=0
+
+listen_host=127.0.0.1
+listen_port=4545
+
+;REMOTE SETTINGS
+remote_transfer=0
+;remote_transfer=1 //для пересылки данных
+remote_port=4547
+remote_host=127.0.0.1
+;периодичность попыток связи с удаленным сервером при разрыве связи, cek
+retry_interval=30
+;размер списка, ожидающего передачу на удаленный сервер, штуки
+size_in_memo=120
+
+; максимальное кол-во сообщений в очереди приема
+max_list_size=10
+
+; in seconds периодичность выдачи сигнала на передачу/запись полученных сообщений
+check_period=60
+
+; путь ко внутреннему файлу логирования
+logfile=./log/logger.log
+
+; уровень логирования
+loglevel=0
+
+;size of logfile in KBytes (logsize = 0 - означает не проверять размер файла )
+logsize=0
+
+[TYPE_LOGGER]
+; директория для сохраниения файлов, сформированных из данных от клиентов
+folder=./LoggerArchive
+;folder=/var/www/magicpro/public_html/vardata/logger/
+
+; владелец локально создаваемых лог-файлов
+;owner_user=magicpro
+;owner_group=magicpro
+; права владельца локально создаваемых лог-файлов
+mode_dir=0777
+mode_file=0666
+
+; максимальный размер одного Log-файла
+max_file_size=2000
+
+; кол-во архивных файлов одного типа
+max_archive_count=10
+
+; счетчик ошибок, превышающих заданный уровень (0 - отключено, не считаем вообще )
+error_counter=10
+
+; уровень ошибки, с которой начинается регистрация (0 - не считаем)
+registered_error_level=5
+
+; timeout для сброса счетчика ошибок, минуты  (30 минут)
+reset_error_timeout=1 
+
+; timeout для повторной передачи почты. минуты (10)
+email_error_timeout=3
+
+; перечень адресов для уведомлений о превышении кол-ва ошибок (перечень через пробел)
+emails_error=chernova.ib@gmail.com chernova.ib@yandex.ru
+
+; объем критических сообщений для почтовых отправлений у одного домена, KByte. Maximun = 20KB
+email_volume=1
+
+[TYPE_TEXT]
+; директория для сохранения данных в файлы
+folder=./TextJson
+;folder=/var/www/magicpro/public/vardata/log/
+
+; имя файла-приемника по-умолчанию
+default_fle_name=jsonData.txt
+
+; наименование параметра, содержащего имя файла-приемника данных
+file_name_param=fileName
+
+; владелец локально создаваемых файлов
+;owner_user=magicpro
+;owner_group=magicpro
+; права владельца локально создаваемых файлов
+mode_dir=0777
+mode_file=0666
+
+; максимальный размер одного файла
+max_file_size=2000
+
+; кол-во архивных файлов одного типа, 0 - без ограничений, N - не более N файлов
+max_archive_count=0
+
+; json, etc...
+encode=json
+
+[TYPE_MYSQL]
+host
+port
+database
