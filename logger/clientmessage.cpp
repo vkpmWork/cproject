@@ -53,9 +53,9 @@ void *handler_message_thread(void*)
     while(true)
 	{
 //      std::cout << "TimeOut\n";
-	  if ((recv_sig = sigtimedwait(&mask, &siginfo, &tv)) == -1)
+	  if ((recv_sig = sigtimedwait(&mask, &siginfo, &tv)) == -1 && (errno != EAGAIN))
 	  {
-	    if (errno == EAGAIN) continue;
+	    //if (errno != EAGAIN)
 
 	    perror("sigtimedwait");
         break;
@@ -66,15 +66,17 @@ void *handler_message_thread(void*)
 	  union sigval svalue;
 	  svalue.sival_int =  siginfo._sifields._rt.si_sigval.sival_int;
 
-	  if (svalue.sival_int != msgevent::evMsg && svalue.sival_int != msgevent::evDelete) continue;
+	  bool fl_break = (bool)(svalue.sival_int == 0xFF);
+      if (recv_sig == -1 || svalue.sival_int == 0xFF) svalue.sival_int = msgevent::evMsg;
+      else	 if (svalue.sival_int != msgevent::evMsg && svalue.sival_int != msgevent::evDelete) continue;
 
 	  if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexLock();
 	  Mmessagelist mml =  pClientMessage->message_list;
 	  pClientMessage->ClearMessageList();
 	  if (pLoggerMutex) pLoggerMutex->ClientMessage_MutexUnlock();
 
-	  if (svalue.sival_int == 0xFF) break;
-	  else Msg_to_local_store (mml, (msgevent::tcEvent)svalue.sival_int);
+	  Msg_to_local_store (mml, (msgevent::tcEvent)svalue.sival_int);
+	  if (fl_break) break;
 
 	}
     std::cout << "4\n";
@@ -112,7 +114,6 @@ void	create_message_handler_thread()
 
 /*---------------------------------------------*/
 TClientMessage *pClientMessage = NULL;
-//pthread_t logger_thread;
 
 TClientMessage::TClientMessage(pthread_t m_msg_thread, pthread_t m_error_thread, pthread_t m_remote_thread,
 						       Logger_namespace::tcStore store , ulong maxStoreListSize, uint checkPeriod, uint m_error_level)
@@ -131,7 +132,7 @@ TClientMessage::TClientMessage(pthread_t m_msg_thread, pthread_t m_error_thread,
 
 void TClientMessage::OnReadyTransmitMessage()
 {
-	if (message_list.size() < MaxStoreListSize) return;
+	if (get_messagelist_size() < MaxStoreListSize) return;
 
 	union sigval value;
    	value.sival_int = msgevent::evMsg;
@@ -165,7 +166,9 @@ inline void  TClientMessage::OnTransmitError(uint m_error, std::string m_domain,
 void    TClientMessage::AddMessage(TLogMsg *m)
 {
    m_cmd   = msgevent::evEmpty;
+   m->ParseData();
    msgevent::tcEvent ev = m->Event();
+
 
    switch(ev)
    {
@@ -227,15 +230,9 @@ TClientMessage::~TClientMessage()
 	wmsg(s, common::levDebug);
 }
 
-void  TClientMessage::set_transmit_timer(bool value)
+inline int   TClientMessage::get_messagelist_size()
 {
-	/*
-    bool aa = pTimerTramsmitMessage->isActive();
-    if ( aa != value)
-    {
-        if (value) pTimerTramsmitMessage->start();
-        else
-            pTimerTramsmitMessage->stop();
-    }
-    */
+	int sz = 0;
+	for (Mmessagelist::iterator it = message_list.begin(); it != message_list.end(); it++ ) sz += ((*it).second).size();
+	return sz;
 }

@@ -149,8 +149,6 @@ void RemoteThread::RunWork(Mmessagelist m_list)
     tclient_socket *Socket  = new tclient_socket((char*)pConfig->RemoteAddress().c_str(), pConfig->RemotePort(), pConfig->retry_interval());
     if (!Socket) return;
 
-    if (Socket->net_connect())
-    {
 
     	char *buf = 0;
     	int   len = 0;
@@ -163,17 +161,20 @@ void RemoteThread::RunWork(Mmessagelist m_list)
     		if (buf)
     		{
     	    	memmove(buf, (*it).c_str(), len);
+    	        if (Socket->net_connect())
+    	        {
     			is_ok = Socket->net_send(buf, len);
     			free(buf);
-    			sleep(1);
-    			cnt++;
+    			if (is_ok) Socket->net_recv();
+    	    	Socket->net_close();
 
-    		//	if (!is_ok) break;
+    	    	cnt++;
+    	        }
+    	        else break;
     		}
     	}
-    	Socket->net_close();
     	cout << "Cnt = " << cnt << endl;
-    }
+
     delete Socket;
     Socket = NULL;
 

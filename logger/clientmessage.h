@@ -3,8 +3,6 @@
 
 #include "common.h"
 #include "tlogmsg.h"
-#include <vector>
-#include <map>
 #include "loggermutex.h"
 
 typedef vector<string> Vmessage; /* список сообщений от клиентов */
@@ -34,8 +32,8 @@ public:
     ~TClientMessage();
 private:
     pthread_t 	    msg_thread,
-    				remote_thread,
-    				error_thread;
+    				error_thread,
+    				remote_thread;
 
 
     unsigned short  MaxStoreListSize;
@@ -52,10 +50,10 @@ private:
 		char *msg;
 	};
 
-    inline    void  set_transmit_timer(bool);
     inline    void  OnReadyTransmitMessage();
     inline    void  OnDeleteMessage(/*std::string*/);
     inline 	  void  OnTransmitError(uint, std::string, std::string);
+    inline    int   get_messagelist_size();
 };
 extern pthread_t 	message_thread;
 extern pthread_t 	remote_thread;

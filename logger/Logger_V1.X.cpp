@@ -17,7 +17,7 @@
 #include <signal.h>
 #include <typeinfo>
 
-#include <msgpack.hpp>
+//#include <msgpack.hpp>
 #include <iostream>
 
 #define LOCAL
@@ -41,9 +41,15 @@ void    Sig_Handler(int sig);
 void    FreeMemory();
 
 /* =============================================================== */
+// Команда wc - подсчет строк, слов и символов
+// wc имя-файла
+// Ответ: кол-во строк   кол-во строк   кол-во символов  имя файла
+/* =============================================================== */
+
 
 int 	main(int argc, char* argv[])
 {
+/*
 	msgpack::type::tuple<int, bool, std::string> src(1, true, "example");
 
     // serialize the object into the buffer.
@@ -76,7 +82,7 @@ int 	main(int argc, char* argv[])
 //    msgpack::type::tuple<int, bool, std::string> dst2 =
 //        deserialized.as<msgpack::type::tuple<int, bool, std::string> >();
 
-
+*/
   if (argc < 2)
   {
       std::cout << "It isn't enough arguments!\n";

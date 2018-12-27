@@ -7,6 +7,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <libgen.h>
+#include <list>
 
 #define DEFAULT_BASE_FILE_NAME     "LogFile.log"
 

@@ -1,97 +1,61 @@
 #include "tlogmsg.h"
 #include <algorithm>
 
-TLogMsg::TLogMsg(string Str):
+TLogMsg::TLogMsg(common::tdata_map dm, string m_str):
           m_ErrorHeadersValue(0)
         , m_Event(msgevent::evEmpty)
+		, DM(dm)
+		, m_string(m_str)
 {
-    ParseString(Str);
-}
-
-void    TLogMsg::Message(string Str)
-{
-    ParseString(Str);
-}
-
-void    TLogMsg::ParseString(string Str)
-{
-    if (Str.empty())
-    {    m_ErrorHeadersValue =  ERROR_EMPTY_STRING;
-         return;
+    if (DM.empty())
+    {	m_ErrorHeadersValue =  ERROR_EMPTY_STRING;
+    	return;
     }
 
-    char *str = strdup(Str.data());
-    if (str)
+    if (!DM.count("data_type"))
+    {	m_ErrorHeadersValue =  ERROR_DATA_TYPE;
+    	return;
+    }
+
+    string s = DM["data_type"];
+
+    if (s.compare("logger") == 0) m_ErrorHeadersValue = CheckLoggerData(dm);
+}
+
+int	TLogMsg::CheckLoggerData(common::tdata_map dm)
+{
+	if ((dm.count(HEADER_MESSAGE) == 0)  && (dm.count(HEADER_COMMAND) == 0) ) return ERROR_EMPTY_MESSAGE|ERROR_EMPTY_COMMAND;
+
+    ushort eHeadersValue = OK;
+    if (dm.count(HEADER_MESSAGE))
     {
-        //std::cout << "STR: " << str << endl;
-
-        m_domain   = GetHeader(str, HEADER_DOMAIN);
-        m_cmd      = GetHeader(str, HEADER_COMMAND);
-        //std::cout << "CMD: " << m_cmd << endl;
-        m_filename = GetHeader(str, HEADER_FILENAME);
-        m_msg      = GetHeader(str, HEADER_MESSAGE);
-        m_error    = GetHeader(str, HEADER_ERROR);
-        m_ierror   = m_error.empty() ? 0 : atoi(m_error.c_str());
-
-        m_ErrorHeadersValue = GetHeadersValue();
-        free(str);
-        str = NULL;
+        if (dm.count(HEADER_DOMAIN)   == 0) eHeadersValue  = (int)ERROR_EMPTY_DOMAIN;
+        if (dm.count(HEADER_FILENAME) == 0) eHeadersValue |= (int)ERROR_EMPTY_FILENAME;
     }
+    return eHeadersValue;
+}
+
+void    TLogMsg::ParseData()
+{
+    m_domain   = DM.count(HEADER_DOMAIN)   ? DM.find(HEADER_DOMAIN)->  second : "";
+    m_cmd      = DM.count(HEADER_COMMAND)  ? DM.find(HEADER_COMMAND)-> second : "";
+    m_filename = DM.count(HEADER_FILENAME) ? DM.find(HEADER_FILENAME)->second : "";
+    m_msg      = DM.count(HEADER_MESSAGE)  ? DM.find(HEADER_MESSAGE)-> second : "";
+    m_error    = DM.count(HEADER_ERROR  )  ? DM.find(HEADER_ERROR)->   second : "";
+    m_ierror   = m_error.empty() ? 0 : atoi(m_error.c_str());
+
+    m_ErrorHeadersValue = GetHeadersValue();
+
     SetEvent(m_cmd);
-
-    m_size   = Str.size();
-    m_string = Str;
 }
-
-string    TLogMsg::GetHeader(char* str, string KeyHeader)
-{
-    string s = "";
-
-    char *pHeader = strstr(str, KeyHeader.c_str());
-    if (!pHeader) return s;
-
-    pHeader = strchr(pHeader, '>');
-    char *pStopInfo = KeyHeader == HEADER_MESSAGE ?  pHeader + strlen(pHeader): strchr(pHeader+1, '<');
-
-    char *m_str = new char[strlen(pHeader)+1];
-    if (m_str)
-    {   memset(m_str, '\0', strlen(pHeader));
-
-        if (pStopInfo) strncpy(m_str, pHeader+1, pStopInfo - pHeader - 1);
-        else strcpy(m_str, pHeader+1);
-
-        s = m_str;
-        delete [] m_str; m_str = NULL;
-    }
 /*
-#ifdef _DEBUG
-    if (KeyHeader == HEADER_MESSAGE)
-    {   time_t seconds = time(NULL);
-        tm* timeinfo   = localtime(&seconds);
-        s.insert(0, asctime(timeinfo));
-    }
-#endif
-*/
-    return s;
-}
-
-string   TLogMsg::domain()
-{
-    return m_domain;
-}
-
-
-string   TLogMsg::fullfilename()
-{
-    return m_filename;
-}
-
 string   TLogMsg::filename()
 {
     size_t vLastDelimiter = m_filename.find_last_of(DELIMITER);
     string str = vLastDelimiter == std::string::npos ? m_filename : m_filename.substr(vLastDelimiter+1);
     return str;
 }
+*/
 
 string   TLogMsg::msg()
 {
@@ -99,17 +63,6 @@ string   TLogMsg::msg()
     s.append(MARKER_END);
     return s;
 }
-
-string   TLogMsg::cmd()
-{
-    return m_cmd;
-}
-
-int   TLogMsg::error()
-{
-    return m_ierror;
-}
-
 
 unsigned short  TLogMsg::GetHeadersValue()
 {
@@ -126,30 +79,10 @@ unsigned short  TLogMsg::GetHeadersValue()
 
 string  TLogMsg::Message()
 {
- /*   string str;
-    str.append(HEADER_DOMAIN);
-    str.append(m_domain);
-    if (!m_error.empty())
-    {   str.append(HEADER_ERROR);
-        str.append(m_error);
-    }
-    str.append(HEADER_FILENAME);
-    str.append(m_filename);
-    if (!m_msg.empty())
-    {   str.append(HEADER_MESSAGE);
-        str.append(m_msg);
-    }
-    if (!m_cmd.empty())
-    {   str.append(HEADER_COMMAND);
-        str.append(m_cmd);
-    }
-    //str.append(MARKER_END);
-
-    return str;
-*/
  m_string.append(MARKER_END);
  return m_string;
 }
+
 
 string  TLogMsg::GlobalFileName()
 {
@@ -186,9 +119,4 @@ void TLogMsg::SetEvent(string ev)
          else if (ev == COMMAND_RECONFIG) m_Event = msgevent::evConfig;
               else  if (ev == COMMAND_EXIT) m_Event = msgevent::evExit;
                     else m_Event = msgevent::evEmpty;
-}
-
-size_t TLogMsg::Size()
-{
-    return m_size;
 }

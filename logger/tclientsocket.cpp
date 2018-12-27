@@ -69,12 +69,7 @@ void *handler_client_thread(void *m_clientfd)
              free(buf);
      }
 
-    /* Clean up the client socket */
-    shutdown (m, SHUT_RDWR);
-    close(m);
-
-/*
-    std::cout << str.data() << std::endl;    // ["Hello," "World!"]
+//    std::cout << str.data() << std::endl;
 
     // Deserialize the serialized data.
     msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
@@ -84,26 +79,23 @@ void *handler_client_thread(void *m_clientfd)
     std::cout << obj << std::endl;
 
     // Convert the deserialized object to staticaly typed object.
-    std::map<std::string, int> result;
+    common::tdata_map result;
     obj.convert(result);
 
-    for (std::map<std::string, int>::iterator it = result.begin(); it != result.end(); it++)
-    {
-    	std::cout << (*it).first << " : " << (*it).second << endl;
-    }
-    return NULL;
-*/
-    std::ostringstream ss;
-    ss << m_child << " " << str << endl;
-    wmsg(ss, common::levDebug);
-
-    TLogMsg SocketMessage(str);
+    TLogMsg SocketMessage(result, str);
     ErrorHeadersValue |= SocketMessage.ErrorHeadersValue();
+
+    string m_send = atos(ErrorHeadersValue);
+    send(m, m_send.c_str(), m_send.length(), MSG_NOSIGNAL);
+
+    /* Clean up the client socket */
+    shutdown (m, SHUT_RDWR);
+    close(m);
 
     if ((ErrorHeadersValue & ERROR_HEADER_FORMAT) == 0) pClientMessage->AddMessage(&SocketMessage);
     if (ErrorHeadersValue)
     {
-        ss.str("");
+        std::ostringstream ss;
         ss << "SocketRunnable::Message ErrorHeadersValue = " + atos(ErrorHeadersValue);
         wmsg(ss, common::levWarning);
     }
@@ -386,7 +378,7 @@ bool  tclient_socket::do_accept()
 */
 
                          create_client_thread(&clientfd);
-                         //handler_proc::handler_client_thread(&clientfd);
+                         //handler_client_thread(&clientfd);
          }
 
          return true;
@@ -493,20 +485,16 @@ bool tclient_socket::bsend(int m_socket, char *buf, int length)
                   m_out = send(m_socket, buf+total, length-total, 0);
                   if(m_out == -1)
                   {
-                          std::ostringstream msg;
-                          msg << time(0) <<  " : " << "tclient_socket::send(const char *buf, int length) " << strerror(errno) << "data:  " << buf << std::endl;
-                          wmsg(msg, common::levError);
-                          break;
-                  }
-                  if (m_out == 0)
-                    {
+                      if (errno == EAGAIN)
+                      {   usleep(200);
+                          continue;
+                      }
                       std::ostringstream msg;
-                      msg << time(0) <<  " : " << "tclient_socket::send(const char *buf, int length) " << strerror(errno) << "m_out == 0" << buf << std::endl;
+                      msg << time(0) <<  " : " << "tclient_socket::send(const char *buf, int length) " << strerror(errno) << "data:  " << buf << std::endl;
                       wmsg(msg, common::levError);
                       break;
-                    }
+                  }
                   total += m_out;
-                  //length -=total;
   }
 
   return m_out != -1;
@@ -577,25 +565,25 @@ bool  tclient_socket::net_recv(char *s)
 
 void  tclient_socket::net_recv()
 {
-	sleep(1);
-
-	char* buf 	  = (char*)malloc(65535);
-	int ret_value = -1;
-	if (buf)
-	{
-		bzero((char *) buf, 65535);
-		ret_value = recv(sock, buf, 65535, 0);
-	}
-
-	if (!ret_value)
-	{
-		std::ostringstream message;
-		message << errno << " " << time(0) << " net_recv(): " << buf << " Received : " << strerror(errno) << std::endl;
-		logger::write_log(message);
-		net_close();
-	}
-
-	free(buf);
+    int   sz          = 0;
+    char* buf         = (char*)calloc(100, sizeof(char));
+    if (buf)
+    {
+            do
+            {
+                    sz = recv(sock, buf, 100, 0);
+                    if (sz < 0)
+                    {
+                            if (errno == EAGAIN) continue;
+                            std::ostringstream message;
+                            message << errno << " " << time(0) << " net_recv(): " << buf << " Received : " << strerror(errno) << std::endl;
+                            logger::write_log(message);
+                    }
+            }
+            while (sz > 0);
+            cout << "Request = " << buf << " Sz = " << sz << endl;
+            free(buf);
+    }
 }
 
 std::string  tclient_socket::receive(int &m_size)

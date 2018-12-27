@@ -18,6 +18,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <map>
 
 //#define _DEBUG
 //#define LOCAL
@@ -80,6 +81,7 @@ namespace Logger_namespace
 
 namespace common
 {
+	typedef std::map<string,string> tdata_map;
 	typedef std::vector<char*> MProcess;
 
 	enum tcLogLevel { levDebug = 0, levWarning, levError };
